@@ -142,7 +142,35 @@ void test_basic_usage_of_union() {
     printf("---------------------------------\n");
 }
 
+/*
+    show the initialization of struct; 
+    show the array assignment in struct;
+*/
+void test_usage_of_struct() {
+    int i;
+    
+    struct my_stct{
+        int array[3]; 
+    };
+    
+    struct my_stct a1 = {
+        .array = {10, 20, 30}
+    };
+    struct my_stct a2 = {
+        .array = {100, 200, 300}
+    }; 
+    
+    a2 = a1;  // array assignment happened!
+    
+    for (i=0; i<3; i++) {
+        printf("%d ", a2.array[i]);  // 10 20 30
+    }
+    printf("\n---------------------------------\n");
+}
+
+
 int main(int argc, char * argv[]) {
+    test_usage_of_struct();
     test_basic_usage_of_union();
     test_count_one_in_binary_number(99);
     test_check_2_power();
