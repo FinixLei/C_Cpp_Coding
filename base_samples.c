@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stddef.h>
+#include <stdlib.h>
 
 /* 
     write a macro to convert the big endian/little endian to little endian/big endian. 
@@ -105,7 +105,26 @@ void test_check_2_power() {
     printf("---------------------------------\n");
 }
 
+/*
+    calculate how many 1 there are in one specified number's binary style
+*/
+void test_count_one_in_binary_number(int value) {
+    int num = value;
+    int count = 0;
+    char binary_style[10];
+    
+    while (num) {
+        count ++;
+        num = num & (num - 1); 
+    }
+    
+    printf("There are %d 1-s in the binary style of %d\n", count, value);
+    printf("The hex style of %d is 0x%x\n", value, value);
+    printf("---------------------------------\n");
+}
+
 int main(int argc, char * argv[]) {
+    test_count_one_in_binary_number(99);
     test_check_2_power();
     test_swap();
     test_check_type_signed_unsigned(); 
