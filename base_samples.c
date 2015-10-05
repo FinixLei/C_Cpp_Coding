@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stddef.h>
 
 /* 
     write a macro to convert the big endian/little endian to little endian/big endian. 
@@ -61,7 +62,52 @@ void test_check_type_signed_unsigned() {
     printf("---------------------------------\n");
 }
 
+/* 
+    write a macro to implement swap
+*/
+void test_swap() {
+    #define swap_1(A,B) A=A+B; B=A-B; A=A-B;
+    
+    #define swap_2(A,B) A=A^B; B=A^B; A=A^B;
+    
+    int a = 10, b = 20;
+    printf("a = %d, b = %d\n", a, b);  // 10, 20
+    
+    swap_1(a, b); 
+    printf("a = %d, b = %d\n", a, b);  // 20, 10
+    
+    swap_2(a, b); 
+    printf("a = %d, b = %d\n", a, b);  // 10, 20
+    
+    printf("---------------------------------\n");
+}
+
+/*
+    write a macro to check if a variable is 2^n 
+*/
+void test_check_2_power() {
+    # define IsTwoPower(X) ((X & X-1)?0:1)
+    
+    int a = 100, b = 64;
+    
+    if (IsTwoPower(a)) {
+        printf("%d is 2 power\n", a);
+    } else {
+        printf("%d is not 2 power\n", a);
+    }
+    
+    if (IsTwoPower(b)) {
+        printf("%d is 2 power\n", b);
+    } else {
+        printf("%d is not 2 power\n", b);
+    }
+    
+    printf("---------------------------------\n");
+}
+
 int main(int argc, char * argv[]) {
+    test_check_2_power();
+    test_swap();
     test_check_type_signed_unsigned(); 
     test_check_signed_unassigned();
     test_convert_bigendian_littleendian();
