@@ -123,7 +123,27 @@ void test_count_one_in_binary_number(int value) {
     printf("---------------------------------\n");
 }
 
+/* 
+    basic usage of union
+*/
+void test_basic_usage_of_union() {
+    union my_un{
+        int a;
+        char ch;
+    };
+    
+    union my_un mu;  // union cannot be initialized. "my_un mu.a = 10;" cannot pass compiler. 
+    mu.a = 100;
+    printf("mu.a is %d\n", mu.a); 
+    mu.ch = 'a';
+    printf("mu.ch is %c\n", mu.ch); 
+    printf("size of mu is %d\n", sizeof(mu));  // 4
+    
+    printf("---------------------------------\n");
+}
+
 int main(int argc, char * argv[]) {
+    test_basic_usage_of_union();
     test_count_one_in_binary_number(99);
     test_check_2_power();
     test_swap();
