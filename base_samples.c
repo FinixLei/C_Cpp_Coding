@@ -44,7 +44,7 @@ void test_check_signed_unassigned() {
     write a macro to check a type is signed or unsigned
 */
 void test_check_type_signed_unsigned() {
-    #define IsUnsignedType(TYPE) (((TYPE)0 - (TYPE)1) > (TYPE)0)
+    #define IsUnsignedType(TYPE) ((TYPE)0 - (TYPE)1 > (TYPE)0)
     
     if (IsUnsignedType(int)) {
         printf("int is unsigned type\n");
