@@ -23,8 +23,28 @@ void test_strstr() {
     puts(str1);  // This is a sample string
 }
 
+/*
+    char * strok(char * s, char * delimeters); 
+    Function: find all the words in str1 but delimited by the delimitors specified in str2
+*/
+
+void test_strok() {
+    char input[] = "a b c,d";
+    char * p;
+    char delimeters[] = ", ";  // the delimiter is space and comma
+    
+    // the first use of strok
+    p = strok(input, delimeters);
+    
+    while (p != NULL) {
+        printf("%s\n", p);
+        p = strok(NULL, delimeters);
+    }
+}
+
 int main(int argc, char ** argv) {
     test_strstr();
+    test_strok();
     
     return 0;
 }
