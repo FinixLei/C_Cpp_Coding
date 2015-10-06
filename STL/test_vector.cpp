@@ -22,6 +22,14 @@ void test_vector_01() {
         cout << *cvit << " ";
     }
     cout << endl;
+    
+    // test the constructor
+    vector<int> vi2(vi.begin(), vi.end()); 
+    cout << "print the content of vi2" << endl;
+    for (vector<int>::iterator vit=vi2.begin(); vit!=vi2.end(); vit++) {
+        cout << *vit << " ";
+    }
+    cout << endl;
 }
 
 int main(int argc, char ** argv) {
