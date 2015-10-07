@@ -5,14 +5,14 @@ all: string_in_c cpp_base_samples c_base_samples \
      singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
      test_String test_autoptr test_Matrix \
      ReverseLinkedList ClassicListAll CommonListAll\
-     test_vector
+     test_vector template_specialize
      
 clean:
 	rm -f string_in_c cpp_base_samples c_base_samples \
     singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
     test_String String.o test_autoptr ClassicSamples/Matrix/Matrix.o test_Matrix \
     ReverseLinkedList ClassicListAll CommonListAll \
-    test_vector
+    test_vector template_specialize
 
 # Root 
 string_in_c: string_in_c.c
@@ -72,3 +72,7 @@ CommonListAll: Algorithm/CommonListAll.cpp
 # STL folder
 test_vector: STL/test_vector.cpp
 	${GPP} -o test_vector STL/test_vector.cpp
+    
+template_specialize: STL/template_specialize.cpp
+	${GPP} -o template_specialize STL/template_specialize.cpp
+    
