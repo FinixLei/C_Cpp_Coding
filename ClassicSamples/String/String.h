@@ -1,3 +1,6 @@
+#ifndef STRING_H
+#define STRING_H
+
 #include <cstdio>
 #include <iostream>
 using namespace std;
@@ -15,3 +18,5 @@ public:
 private:
     char * m_data;  // 用于保存字符串
 };
+
+#endif
