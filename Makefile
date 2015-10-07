@@ -2,16 +2,17 @@ GPP := g++ -std=c++11
 CC := gcc
 
 all: string_in_c cpp_base_samples c_base_samples \
-     singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor \
+     singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
      ReverseLinkedList ClassicListAll CommonListAll\
      test_vector
      
 clean:
 	rm string_in_c cpp_base_samples c_base_samples \
-    singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor \
+    singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
     ReverseLinkedList ClassicListAll CommonListAll \
     test_vector
-    
+
+# Root 
 string_in_c: string_in_c.c
 	${CC} -o string_in_c string_in_c.c
     
@@ -21,6 +22,7 @@ cpp_base_samples: base_samples.cpp
 c_base_samples: base_samples.c
 	${CC} -o c_base_samples base_samples.c
 
+# ClassicSamples folder
 singleton: ClassicSamples/Singleton.cpp
 	${GPP} -o singleton ClassicSamples/Singleton.cpp
     
@@ -36,6 +38,10 @@ test_class_size: ClassicSamples/test_class_size.cpp
 test_copy_constructor: ClassicSamples/test_copy_constructor.cpp
 	${GPP} -o test_copy_constructor ClassicSamples/test_copy_constructor.cpp
     
+test_strcpy: ClassicSamples/test_strcpy.cpp
+	${GPP} -o test_strcpy ClassicSamples/test_strcpy.cpp
+    
+# Algorithm folder
 ReverseLinkedList: Algorithm/ReverseLinkedList.cpp
 	${GPP} -o ReverseLinkedList Algorithm/ReverseLinkedList.cpp
     
@@ -44,6 +50,7 @@ ClassicListAll: Algorithm/ClassicListAll.cpp
     
 CommonListAll: Algorithm/CommonListAll.cpp
 	${GPP} -o CommonListAll Algorithm/CommonListAll.cpp 
-    
+
+# STL folder
 test_vector: STL/test_vector.cpp
 	${GPP} -o test_vector STL/test_vector.cpp
