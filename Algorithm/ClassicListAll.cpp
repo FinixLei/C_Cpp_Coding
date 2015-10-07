@@ -11,14 +11,16 @@ perm (X) 表示集合X 中元素的排列方式，ei . perm(X)表示在perm (X) 
 至此，一个完整的递归定义所需要的基本部分和递归部分都已完成。
 
 源代码：
-//辅助函数，用于交换
+//辅助函数，用于交换 */
 template <class T>
 inline void Swap(T& a, T& b)
 {
 	T temp;
 	temp=a; a=b; b=temp;
 }
-*/
+
+// 也可以不用上述自己定义的Swap而直接用std::swap()
+
 
 static int count = 0;
 
@@ -35,9 +37,9 @@ void ClassicListAll(int array[], int start, int end)
     }
     
     for (int i=start; i<=end; i++) {
-        swap(array[i], array[start]);
+        Swap(array[i], array[start]);
         ClassicListAll(array, start+1, end);
-        swap(array[i], array[start]);
+        Swap(array[i], array[start]);
     }
 }
 
