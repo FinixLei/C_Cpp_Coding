@@ -1,10 +1,10 @@
 all: string_in_c cpp_base_samples c_base_samples \
-     singleton C_File_Op Cpp_File_Op test_class_size \
+     singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor \
      test_vector
      
 clean:
 	rm string_in_c cpp_base_samples c_base_samples \
-    singleton C_File_Op Cpp_File_Op test_class_size \
+    singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor \
     test_vector
     
 string_in_c: string_in_c.c
@@ -27,6 +27,9 @@ Cpp_File_Op: ClassicSamples/Cpp_File_Op.cpp
     
 test_class_size: ClassicSamples/test_class_size.cpp
 	g++ -o test_class_size ClassicSamples/test_class_size.cpp
+    
+test_copy_constructor: ClassicSamples/test_copy_constructor.cpp
+	g++ -o test_copy_constructor ClassicSamples/test_copy_constructor.cpp
     
 test_vector: STL/test_vector.cpp
 	g++ -o test_vector STL/test_vector.cpp
