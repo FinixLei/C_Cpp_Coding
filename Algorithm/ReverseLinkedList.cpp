@@ -6,6 +6,7 @@ struct Node {
     Node * next;
 };
 
+// way 1 - in a recursive way
 Node * reverse_linkedlist_recursively(Node * head) {
     if (head == NULL or head->next == NULL) {
         return head;
@@ -20,6 +21,7 @@ Node * reverse_linkedlist_recursively(Node * head) {
     return final_head;
 }
 
+// way2 - in a non-recursive way
 Node * reverse_linkedlist(Node * head) {
     if (head == NULL or head->next == NULL) {
         return head;
