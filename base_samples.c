@@ -168,8 +168,34 @@ void test_usage_of_struct() {
     printf("\n---------------------------------\n");
 }
 
+/*
+    check big endian or little endian
+*/
+#include <stdio.h>
+
+int isLittleEndian()
+{
+    union w
+    {
+        int a;
+        char b;
+    } c;
+    c.a = 1;
+return(c.b == 1);
+}
+
+void test_little_endian() {
+    int isLittle = isLittleEndian();
+    if (isLittle) {
+        printf("This is Little Endian\n"); 
+    } else {
+        printf("This is Big Endian\n"); 
+    }
+    printf("---------------------------------\n");
+}
 
 int main(int argc, char * argv[]) {
+    test_little_endian();
     test_usage_of_struct();
     test_basic_usage_of_union();
     test_count_one_in_binary_number(99);
