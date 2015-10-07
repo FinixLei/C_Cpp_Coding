@@ -3,14 +3,14 @@ CC := gcc
 
 all: string_in_c cpp_base_samples c_base_samples \
      singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
-     test_String \
+     test_String test_autoptr \
      ReverseLinkedList ClassicListAll CommonListAll\
      test_vector
      
 clean:
 	rm string_in_c cpp_base_samples c_base_samples \
     singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
-    test_String String.o \
+    test_String String.o test_autoptr \
     ReverseLinkedList ClassicListAll CommonListAll \
     test_vector
 
@@ -50,6 +50,8 @@ String.o: ClassicSamples/String/String.h ClassicSamples/String/String.cpp
 test_String: ClassicSamples/String/test_String.cpp String.o
 	${GPP} -o test_String ClassicSamples/String/test_String.cpp String.o
     
+test_autoptr: ClassicSamples/Autoptr/test_autoptr.cpp ClassicSamples/Autoptr/autoptr.h
+	${GPP} -o test_autoptr ClassicSamples/Autoptr/test_autoptr.cpp
     
 # Algorithm folder
 ReverseLinkedList: Algorithm/ReverseLinkedList.cpp
