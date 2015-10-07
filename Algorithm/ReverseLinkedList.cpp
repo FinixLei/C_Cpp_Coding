@@ -21,7 +21,29 @@ Node * reverse_linkedlist_recursively(Node * head) {
 }
 
 Node * reverse_linkedlist(Node * head) {
-    return head;
+    if (head == NULL or head->next == NULL) {
+        return head;
+    }
+    
+    Node *p1 = head; 
+    Node *p2 = head->next;
+    Node *p3 = p2->next;
+    
+    head->next = NULL; 
+    
+    if (p3 == NULL) {
+        p2->next = p1;
+        return p2;
+    }
+    
+    while (p3->next != NULL) {
+        p2->next = p1; // 一个循环体里面只做一次反转
+        p1 = p2; p2 = p3; p3 = p3->next; 
+    }
+    
+    p2->next = p1;
+    p3->next = p2;
+    return p3;
 }
 
 void print_linkedlist(Node * head) {
@@ -41,9 +63,17 @@ int main() {
     n2->next = n3;
     n3->next = NULL;
     
-    print_linkedlist(n1);
+    print_linkedlist(n1);  // 1 2 3
     Node * h = reverse_linkedlist_recursively(n1);
-    print_linkedlist(h);
+    print_linkedlist(h);  // 3 2 1
+    
+    h = reverse_linkedlist(h); 
+    print_linkedlist(h);  // 1 2 3
+    
+    struct Node * n4 = new Node({.data = 4, .next = NULL}); 
+    n3->next = n4;
+    h = reverse_linkedlist(h); 
+    print_linkedlist(h);  // 4 3 2 1
     
     return 0;
 }
