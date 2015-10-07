@@ -6,18 +6,22 @@ struct Node {
     Node * next;
 };
 
-Node * reverse_linkedlist(Node * head) {
+Node * reverse_linkedlist_recursively(Node * head) {
     if (head == NULL or head->next == NULL) {
         return head;
     }
     
     Node * t1 = head;
     Node * t2 = t1->next;
-    Node * final_head = reverse_linkedlist(t2);
+    Node * final_head = reverse_linkedlist_recursively(t2);
     t2->next = t1;
     t1->next = NULL;
     
     return final_head;
+}
+
+Node * reverse_linkedlist(Node * head) {
+    return head;
 }
 
 void print_linkedlist(Node * head) {
@@ -38,7 +42,7 @@ int main() {
     n3->next = NULL;
     
     print_linkedlist(n1);
-    Node * h = reverse_linkedlist(n1);
+    Node * h = reverse_linkedlist_recursively(n1);
     print_linkedlist(h);
     
     return 0;
