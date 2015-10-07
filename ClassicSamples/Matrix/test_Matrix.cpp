@@ -23,7 +23,8 @@ int main(int argc, char *argv[])
         for(int j=0; j<2; j++) {
             m4.set_value(value++, i, j);
         }
-        
+    cout << m4 << endl;
+    
     Matrix m5(2,2);
     m5 = m3 * m4;
     cout << m5 << endl;
