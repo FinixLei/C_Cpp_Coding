@@ -3,14 +3,14 @@ CC := gcc
 
 all: string_in_c cpp_base_samples c_base_samples \
      singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
-     test_String test_autoptr test_Matrix test_placement_new \
+     test_String test_autoptr test_Matrix test_placement_new my_itoa \
      ReverseLinkedList ClassicListAll CommonListAll\
      test_vector template_specialize
      
 clean:
 	rm -f string_in_c cpp_base_samples c_base_samples \
     singleton C_File_Op Cpp_File_Op test_class_size test_copy_constructor test_strcpy \
-    test_String String.o test_autoptr ClassicSamples/Matrix/Matrix.o test_Matrix test_placement_new \
+    test_String String.o test_autoptr ClassicSamples/Matrix/Matrix.o test_Matrix test_placement_new my_itoa \
     ReverseLinkedList ClassicListAll CommonListAll \
     test_vector template_specialize
 
@@ -61,6 +61,9 @@ test_Matrix: Matrix.o ClassicSamples/Matrix/test_Matrix.cpp
    
 test_placement_new: ClassicSamples/test_placement_new.cpp
 	${GPP} -o test_placement_new ClassicSamples/test_placement_new.cpp
+    
+my_itoa: ClassicSamples/my_itoa.c
+	${CC} -o my_itoa ClassicSamples/my_itoa.c
     
 # Algorithm folder
 ReverseLinkedList: Algorithm/ReverseLinkedList.cpp
