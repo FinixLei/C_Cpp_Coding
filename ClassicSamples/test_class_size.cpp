@@ -28,26 +28,28 @@ class C :public A, public B
     virtual fn1(){}
     virtual fn2(){}
     virtual fn3(){}
-    virtual fn4(){}
-    virtual fn5(){}
 };
 
+// sizeof(R) == 8
 class R {
 public:
     virtual void fn(){}
 };
 
+// sizeof(VA) == 8
 class VA: virtual public R{
 public:
     virtual void fn_a() {}
 };
 
+// sizeof(VB) == 8
 class VB: virtual public R{
 public:
     virtual void fn(){}
     virtual void fn_b() {}
 }; 
 
+// sizeof(VC) == 16
 class VC: public VA, public VB {};
 
 int main(int argc, char ** argv)
