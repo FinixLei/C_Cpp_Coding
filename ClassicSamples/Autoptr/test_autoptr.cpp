@@ -1,16 +1,23 @@
+#include "auto_ptr.h"
 #include <iostream>
 using namespace std;
 
-#include "autoptr.h"
 
-int main() {
-    int * a = new int(100);
-    autoptr<int> pa(a);
-    cout << "*pa = " << *pa << endl;
+int main()
+{
+    int *a = new int (10);
+    auto_ptr<int> pa(a);
+    cout << *pa << endl;
     
-    (* pa.get()) = 200;
-    cout << "*pa = " << *pa << endl;
+    auto_ptr<int> pb = pa;
+    cout << *pb << endl; 
+    if (pa.get()==0) cout << "pa is NULL now\n";
+    else cout << "Error: pa is not NULL. \n";
     
-    *pa = 300;
-    cout << "*pa = " << *pa << endl;
+    auto_ptr<int> pc; 
+    pc = pb; 
+    *pc = 20;
+    cout << *pc << endl;
+    if (pb.get()==0) cout << "pb is NULL now\n";
+    else cout << "Error: pb is not NULL. \n";
 }
