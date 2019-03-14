@@ -6,13 +6,7 @@ char * my_strcpy(char * dest, const char * source) {
     assert(dest != NULL && source != NULL);
     
     int i = 0;
-    while(true) {
-        dest[i] = source[i++];
-        if (dest[i-1] == '\0') {
-            break;
-        }
-    }
-    
+    while((dest[i] = source[i++]) != '\0');
     return dest;
 }
 
