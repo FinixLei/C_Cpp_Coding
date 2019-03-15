@@ -1,34 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 char* my_itoa(int num, char* str, int radix)
 {
-    char index[]="0123456789ABCDEF";  /*索引表*/
-    unsigned unum;/*中间变量*/
+    char index[]="0123456789ABCDEF";  // 索引表
+    unsigned unum;
     int i=0;
     int j, k, l;
     
-    /*确定unum的值*/
-    if(radix==10 && num<0)/*十进制负数*/
-    {
-        unum=(unsigned)-num;
-        str[i++]='-';
+    if (num<0) {
+        str[0] = '-';
+        i = 1;
+        num = -num; 
     }
-    else 
-        unum=(unsigned)num;
+    unum = (unsigned)(num);
     
     do{
-        str[i++]=index[unum%(unsigned)radix];
-        unum/=radix;
+        str[i++] = index[unum%(unsigned)radix];
+        unum /= radix;
     } while(unum);
+    
     str[i]='\0';
     
-    /*逆序*/
-    if(str[0]=='-')  /*负数*/
+    if(str[0]=='-')
         k=1;
     else
         k=0;
     
+    // 逆序
     char temp;
     for(j=k, l=i-1; j<l; j++, l--) {
         temp = str[j];
@@ -39,18 +39,18 @@ char* my_itoa(int num, char* str, int radix)
 }
 
 int main(void) {
-    char s[20];
-    char str_style[20];
+    const int size = 20;
+    char char_array[size];
     int int_style;
     
-    printf("Please input a number: ");
-    scanf("%s", s);
+    int num1 = 1234;
+    my_itoa(num1, char_array, 10);
+    printf("num1 = %d, str_num1 = %s\n", num1, char_array);
     
-    int_style = atoi(s);
-    printf("int_style = %d\n", int_style);
-    
-    my_itoa(int_style, str_style, 10);
-    printf("str_style = %s\n", str_style);
+    memset(char_array, 0, size);
+    int num2 = 0x9A;
+    my_itoa(num2, char_array, 16);
+    printf("num2 = 0x%x, str_num2 = %s\n", num2, char_array);
     
     return 0;
 }
