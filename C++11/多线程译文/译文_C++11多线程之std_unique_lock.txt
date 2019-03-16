@@ -1,0 +1,376 @@
+原文如下：
+http://en.cppreference.com/w/cpp/thread/unique_lock
+http://en.cppreference.com/w/cpp/thread/unique_lock/unique_lock
+http://en.cppreference.com/w/cpp/thread/unique_lock/~unique_lock
+http://en.cppreference.com/w/cpp/thread/unique_lock/operator%3D
+http://en.cppreference.com/w/cpp/thread/unique_lock/lock
+http://en.cppreference.com/w/cpp/thread/unique_lock/try_lock
+http://en.cppreference.com/w/cpp/thread/unique_lock/try_lock_for
+http://en.cppreference.com/w/cpp/thread/unique_lock/try_lock_until
+http://en.cppreference.com/w/cpp/thread/unique_lock/unlock
+http://en.cppreference.com/w/cpp/thread/unique_lock/mutex
+http://en.cppreference.com/w/cpp/thread/unique_lock/owns_lock
+http://en.cppreference.com/w/cpp/thread/unique_lock/operator_bool
+
+#std::unique_lock  
+
+定义在头文件 <mutex> 中。
+```{cpp}
+template <class Mutex>      (since C++11)
+class unique_lock;
+```
+
+类 unique_lock 是一个一般性质的 mutex 属主的封装，提供延迟锁定（deferred locking），限时尝试（time-constrained attempts），递归锁定（recursive locking）， 锁主的转换， 以及对条件变量的使用。  
+
+类 unique_lock 是 movable 的，但不是 copyable 的 -- 它满足 MoveConstructible 和 MoveAssignable, 但不满足 CopyConstructible 和 CopyAssignable.  
+
+类 unique_lock 满足 BasicLockable 的要求。如果 Mutex 满足 Lockable 的要求，那么 unique_lock 也满足 Lockable 的要求（比如，可以被用于 std::lock）；如果 Mutex 满足 TimedLockable 的要求，unique_lock 也满足 TimedLockable 的要求。
+
+## 模板参数  
+
+Mutex - 用于锁定的 mutex 的类型。该类型必须满足 BasicLockable 的要求。  
+
+## 构造函数  
+```{cpp}
+(1) unique_lock();  
+(2) unique_lock( unique_lock&& other );  
+(3) explicit unique_lock( mutex_type& m );
+(4) unique_lock( mutex_type& m, std::defer_lock_t t );
+(5) unique_lock( mutex_type& m, std::try_to_lock_t t );
+(6) unique_lock( mutex_type& m, std::adopt_lock_t t );
+(7) template< class Rep, class Period >
+    unique_lock(mutex_type& m, 
+                const std::chrono::duration<Rep,Period>& timeout_duration);
+(8) template< class Clock, class Duration >
+    unique_lock(mutex_type& m, 
+                const std::chrono::time_point<Clock,Duration>& timeout_time);
+```
+
+(1) unique_lock();  
+    构造一个没有关联 mutex 的 unique_lock  
+    
+(2) unique_lock( unique_lock&& other );  
+    Move构造函数，使用 other 的内容来构造 unique_lock. 使得other变成没有mutex关联的unique_lock.  
+
+(3) - (8) 构造一个以 m 为关联的mutex的unique_lock, 另外： 
+    
+(3) explicit unique_lock( mutex_type& m );  
+    通过调用 m.lock() 来锁定相关联的 mutex. 如果当前线程已经拥有了mutex，且不是递归的mutex，那么行为未定义。
+
+(4) unique_lock( mutex_type& m, std::defer_lock_t t );  
+    不锁定相关的mutex. 
+
+(5) unique_lock( mutex_type& m, std::try_to_lock_t t );
+    通过调用 m.try_lock() 来尝试锁定相关的mutex而不会阻塞。如果当前线程已经拥有mutex且不是递归mutex，则行为未定义。
+    
+(6) unique_lock( mutex_type& m, std::adopt_lock_t t );  
+    假设线程已经拥有m. 
+
+(7) 
+```{cpp}
+template< class Rep, class Period >  
+    unique_lock(mutex_type& m, const std::chrono::duration<Rep,Period>& timeout_duration);  
+```
+通过调用 m.try_lock_for(timeout_duration) 试图锁定相关联的 mutex. 一直阻塞直到超时或锁定成功。也可能阻塞得比time_duration的时间更长一些。
+    
+(8) 
+```{cpp}
+template< class Clock, class Duration >  
+    unique_lock(mutex_type& m, const std::chrono::time_point<Clock,Duration>& timeout_time);  
+```
+通过调用 m.try_lock_until(timeout_time) 来试图锁定相关联的 mutex. 一直阻塞直到指定的时间点到达或者锁定成功。可能会在指定的时间到达后仍阻塞一会儿。
+
+示例程序： 
+```{cpp}
+#include <cassert>
+#include <iostream> // std::cout
+#include <thread>
+#include <vector>
+#include <mutex>
+ 
+class Number;
+std::ostream& operator<<(std::ostream& stream, const Number& number);
+ 
+class Number {
+ public:
+  Number() : v_(1) {}
+ 
+  // thread-safe update of 'a' and 'b'
+  static void update(Number& a, Number& b, bool order) {
+    // do not lock 'mutex_' of 'a' and 'b' sequentially,
+    // two sequential lock may lead to deadlock,
+    // that's why 'std::lock' exists (see below)
+    GuardLock lock_a(a.mutex_, std::defer_lock);
+    GuardLock lock_b(b.mutex_, std::defer_lock);
+ 
+    // mutexes is not locked
+    assert(!lock_a.owns_lock());
+    assert(!lock_b.owns_lock());
+ 
+    // unspecified series of calls...
+    std::lock(lock_a, lock_b);
+ 
+    // Result: 'a.mutex_' and 'b.mutex_' is in locked state
+    // 'a' and 'b' can be modified safety
+    assert(lock_a.owns_lock());
+    assert(lock_b.owns_lock());
+ 
+    if (order) {
+      a.v_ += b.v_;
+      b.v_ += a.v_;
+ 
+      std::cout << a << b;
+    }
+    else {
+      b.v_ += a.v_;
+      a.v_ += b.v_;
+ 
+      std::cout << b << a;
+    }
+ 
+    // 'lock_a' and 'lock_b' will be destroyed,
+    // unlocking 'a.mutex_' and 'b.mutex_'
+  }
+ 
+  // not thread-safe; used before thread creation or in thread-safe 'update'
+  std::ostream& print(std::ostream& stream) const {
+    stream << v_ << " ";
+    return stream;
+  }
+ 
+ private:
+  using Mutex = std::mutex;
+  using GuardLock = std::unique_lock<Mutex>;
+ 
+  Mutex mutex_;
+  int v_;
+};
+ 
+// not thread-safe; see 'Number::print'
+std::ostream& operator<<(std::ostream& stream, const Number& number) {
+  return number.print(stream);
+}
+ 
+int main() {
+  Number a, b;
+  std::cout << a << b;
+ 
+  std::vector<std::thread> threads;
+ 
+  for (unsigned i = 0; i < 4; ++i) {
+    // without 'std::lock' deadlock may occur in this situation:
+    //   thread #1 lock 'a.mutex_'
+    //   thread #2 lock 'b.mutex_'
+    //   thread #1 try to lock 'b.mutex_' and blocked (it's locked by #2)
+    //   thread #2 try to lock 'a.mutex_' and blocked (it's locked by #1)
+    //   ... deadlock
+    threads.emplace_back(Number::update, std::ref(a), std::ref(b), true); // #1
+    threads.emplace_back(Number::update, std::ref(b), std::ref(a), false); // #2
+  }
+ 
+  for (auto& i: threads) {
+    i.join();
+  }
+ 
+  std::cout << '\n';
+}
+
+// Output: 
+// 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584
+```
+
+## 析构函数  
+
+销毁这个unique_lock对象。如果 *this 此时拥有一个相关联的 mutex 并且已经获得它，那么就会解锁该mutex.  
+
+## 赋值操作符 operator =
+
+unique_lock& operator=( unique_lock&& other );    (since C++11)  
+
+Move赋值操作符。使用 other 中的内容来赋值给自己。  
+如果在此调用前，*this 已经拥有一个mutex并锁定了它，那么此调用会解锁该mutex.  
+
+## std::unique_lock::lock 函数
+
+void lock();    (since C++11)
+锁定关联的mutex. 高效地调用 mutex()->lock(). 
+
+异常：
+- 抛出mutex()->lock()所抛出的异常。  
+- 如果没有相关联的 mutex, std::system_error就会抛出，所携带的错误码是std::errc::operation_not_permitted.  
+- 如果mutex已经被本unique_lock锁定了（换句话说，owns_lock为true），那么std::system_error就会被抛出，错误码是std::errc::resource_deadlock_would_occur.  
+
+参见示例程序： 
+```{cpp}
+#include <mutex>
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <chrono>
+ 
+int main()
+{
+    int counter = 0;
+    std::mutex counter_mutex;
+    std::vector<std::thread> threads;
+ 
+    auto worker_task = [&](int id) {
+        // Note, this is just lock! See the document of the constructor. 
+        std::unique_lock<std::mutex> lock(counter_mutex);  
+        
+        ++counter;
+        std::cout << id << ", initial counter: " << counter << '\n';
+        lock.unlock();
+        
+        // don't hold the lock while we simulate an expensive operation
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+ 
+        lock.lock();
+        ++counter;
+        std::cout << id << ", final counter: " << counter << '\n';
+    };
+ 
+    for (int i = 0; i < 10; ++i) {
+        // vector::push_back() cannot work due to std::thread is not copyable.
+        threads.emplace_back(worker_task, i);
+    }
+ 
+    for (auto &thread : threads) thread.join();
+}
+
+
+/**
+Possible Output:
+0, initial counter: 1
+1, initial counter: 2
+2, initial counter: 3
+3, initial counter: 4
+4, initial counter: 5
+5, initial counter: 6
+6, initial counter: 7
+7, initial counter: 8
+8, initial counter: 9
+9, initial counter: 10
+1, final counter: 11
+0, final counter: 12
+3, final counter: 13
+5, final counter: 14
+2, final counter: 15
+4, final counter: 16
+7, final counter: 17
+9, final counter: 18
+6, final counter: 19
+8, final counter: 20
+**/
+
+``` 
+
+## std::unique_lock::try_lock 函数  
+
+bool try_lock();    (since C++11)
+试图锁定相关联的mutex，而不会阻塞。高效地调用 mutex()->try_lock().  
+如果没有相关联的mutex或者该mutex已经被该unique_lock锁定，那么 std::system_error 就会被抛出。  
+
+异常：  
+- 任何 mutex()->try_lock() 抛出的异常都会被抛出 （Mutex类型不会被try_lock抛出，但一个自定义的Lockable类型可能会被抛出）。  
+- 如果没有相关联的mutex，那么std::system_error就会被抛出，其错误码是std::errc::operation_not_permitted.  
+- 如果mutex已经被本unique_lock锁定了，std::system_error也会被抛出，错误码是std::errc::resource_deadlock_would_occur.  
+
+## std::unique_lock::try_lock_for 函数  
+
+template<class Rep, class Period>  
+bool try_lock_for( const std::chrono::duration<Rep, Period>& timeout_duration );  (since C++11)  
+
+试图锁定相关联的mutex. 会阻塞住，直到指定的时间段超时或者锁定成功。一旦成功锁定，就返回true，否则返回false. 高效地调用 mutex()->try_lock_for(timeout_duration).  
+一个稳定的时钟被用来衡量此时间段。本函数可能阻塞地比timeout_duration的时间更久一些，原因是系统调度或资源竞争所导致的延时。  
+如果没有相关联的mutex或该mutex已经被锁定，则std::system_error就会被抛出。  
+
+返回值：  
+获得mutex则返回true，否则false.  
+
+异常:  
+- 任何被mutex()->try_lock_for(timeout_duration)抛出的异常都将被抛出；  
+- 若没有相关联的mutex，则std::system_error就会被抛出，错误码是std::errc::operation_not_permitted;  
+- 若mutex已经被锁的那个，则std::system_error就会被抛出，错误码是std::errc::resource_deadlock_would_occur.  
+
+## std::unique_lock::unlock 函数  
+
+void unlock();    (since C++11)  
+解锁相关的mutex.  
+如果没有相关联的mutex或该mutex已经被锁定，则std::system_error就会被抛出。   
+
+异常：  
+- 任何被mutex()->unlock()抛出的异常都会被抛出。  
+- 如果没有相关联的mutex或者mutex并没有被锁定，则std::system_error就会被抛出，错误码是std::errc::operation_not_permitted.  
+
+## std::unique_lock::mutex 函数  
+
+mutex_type* mutex() const;      (since C++11)
+返回一个指向所关联的mutex的指针，或者如果没有相关联的mutex的话就返回一个空指针。  
+
+## std::unique_lock::owns_lock 函数  
+
+bool owns_lock() const;    (since C++11)  
+检查 *this 是否已经锁住mutex.  
+是，则返回true；否则返回false. 
+
+## std::unique_lock::operator bool 函数  
+
+explicit operator bool() const;    (since C++11)  
+
+检查 *this 是否已锁定一个mutex. 高效地调用owns_lock().  
+是，则返回true；否则返回false.  
+
+## 示例程序 
+```{cpp}
+#include <mutex>
+#include <thread>
+#include <chrono>
+#include <iostream>
+ 
+struct Box {
+    explicit Box(int num) : num_things{num} {}
+ 
+    int num_things;
+    std::mutex m;
+};
+ 
+void transfer(Box &a, Box &b, int num)
+{
+    // don't actually take the locks yet
+    std::unique_lock<std::mutex> lock1(a.m, std::defer_lock);
+    std::unique_lock<std::mutex> lock2(b.m, std::defer_lock);
+ 
+    // lock both unique_locks without deadlock
+    std::lock(lock1, lock2);
+ 
+    a.num_things -= num;
+    b.num_things += num;
+ 
+    // 'a.m' and 'b.m' mutexes unlocked outside of 'unique_lock'
+}
+ 
+int main()
+{
+    Box acc1(100);
+    Box acc2(50);
+ 
+    std::thread t1(transfer, std::ref(acc1), std::ref(acc2), 10);
+    std::thread t2(transfer, std::ref(acc2), std::ref(acc1), 5);
+ 
+    t1.join();
+    t2.join();
+    
+    std::cout << "acc1: " << acc1.num_things << std::endl;
+    std::cout << "acc2: " << acc2.num_things << std::endl;
+}
+
+/** Output: 
+acc1: 95
+acc2: 55
+**/
+
+```
+(**译注： 原示例程序没有任何输出且变量命名比较令人费解，故略作修改。**)
+
+(完）

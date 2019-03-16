@@ -1,0 +1,55 @@
+原文： http://en.cppreference.com/w/cpp/thread/mutex
+
+std::mutex
+
+定义在<mutex>中。
+
+mutex类是一个同步原语(synchronization primitive)，可以被用来保护共享数据以免被多个线程同时访问。
+
+mutex提供独有的、非递归的所有权语义(exclusive, non-recursive semantics):
+- 一个线程自从它成功地 lock  或 try_lock 起，它就拥有了一个mutex，直到它调用unlock. 
+- 当一个线程拥有一个mutex的时候，所有其他调用了 lock 的线程都会阻塞住，而调用了 try_lock 的线程都会返回得到 try_lock 的返回值为false. 
+- 一个线程在调用 lock 或 try_lock 之前不可能拥有一个mutex. 
+
+但一个mutex被某线程所拥有时损毁了（destroy），该程序的行为是未定义的（undefined）。
+mutex类满足 Mutex (http://en.cppreference.com/w/cpp/concept/Mutex) 和 StandardLayoutType (http://en.cppreference.com/w/cpp/concept/StandardLayoutType) 的所有要求。
+
+std：：mutex 既不是 copyable 的，也不是 movable 的。
+
+std::mutex 一般不会被直接使用。 std::unique_lock 和 std::lock_guard 是被用来以异常安全（exception-safe）的方式管理锁的。
+
+示例程序：
+以下程序展示了一个mutex是如何被用来保护一个被2个线程共享的std::map的。
+
+#include <iostream>
+#include <map>
+#include <string>
+#include <chrono>
+#include <thread>
+#include <mutex>
+ 
+std::map<std::string, std::string> g_pages;
+std::mutex g_pages_mutex;
+ 
+void save_page(const std::string &url)
+{
+    // simulate a long page fetch
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::string result = "fake content";
+ 
+    std::lock_guard<std::mutex> guard(g_pages_mutex);
+    g_pages[url] = result;
+}
+ 
+int main() 
+{
+    std::thread t1(save_page, "http://foo");
+    std::thread t2(save_page, "http://bar");
+    t1.join();
+    t2.join();
+ 
+    // safe to access g_pages without lock now, as the threads are joined
+    for (const auto &pair : g_pages) {
+        std::cout << pair.first << " => " << pair.second << '\n';
+    }
+}

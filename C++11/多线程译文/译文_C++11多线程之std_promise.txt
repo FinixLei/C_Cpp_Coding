@@ -1,0 +1,325 @@
+原文：  
+http://en.cppreference.com/w/cpp/thread/promise
+http://en.cppreference.com/w/cpp/thread/promise/promise
+http://en.cppreference.com/w/cpp/thread/promise/~promise
+http://en.cppreference.com/w/cpp/thread/promise/operator%3D
+http://en.cppreference.com/w/cpp/thread/promise/swap
+http://en.cppreference.com/w/cpp/thread/promise/get_future
+http://en.cppreference.com/w/cpp/thread/promise/set_value
+http://en.cppreference.com/w/cpp/thread/promise/set_value_at_thread_exit
+http://en.cppreference.com/w/cpp/thread/promise/set_exception
+http://en.cppreference.com/w/cpp/thread/promise/set_exception_at_thread_exit
+http://en.cppreference.com/w/cpp/thread/promise/swap2
+
+
+# promise  
+
+定义在头文件 <future> 中。 
+
+(1) 基本模板  
+template<class R> class promise;  
+
+(2) 非void特化，用于不同线程间的对象的通信  
+template<class R> class promise<R&>  
+
+(3) void特哈U，用于无状态时间的通信  
+template<> class promise<void>;  
+
+类模板 std::promise 提供了一种能力：存储一个值或异常，而该值或异常将来是被异步地获得，而获得的方法是，通过 std::promise 对象创建 std::future 对象，再由future对象异步地提供该值或类型。 
+每一个 promise 都是关联一个共享状态（shared state）的，该共享状态包含了一些状态信息和一个也许还没有被evaluate的结果（会被evaluate成一个值或者异常）。一个promise可能会对共享状态做3件事情： 
+- 使准备好（make ready）： promise将值或者异常存储在共享状态中。将状态标记为ready，并且将所有等待在和该共享状态关联的future上的线程解除阻塞。  
+- 释放（release）： promise放弃对共享状态的引用（reference）。如果这是最后一个这样的引用，那么这个共享状态将被销毁。除非这个共享状态是被一个尚未ready的std::async所创建的，那么这个操作将不会阻塞。
+- 放弃（abandon）： promise存储错误码为std::future_errc::broken_promise的std::future_error类型的异常，并使得共享状态ready，然后释放它。  
+
+promise是promise-future通信渠道的“推动”端("push" end)： 这个操作存储一个值到共享状态。这个操作和一些成功的返回同步。这些“成功的返回”指的是从一些等待在共享状态上的函数（比如std::future::get）返回。对同一个共享状态的并发访问可能会冲突：比如，std::shared_future::get的多个调用者必须全部都是只读的或者提供额外的同步。  
+
+## 1. 构造函数  
+
+1) 默认构造函数。使用一个空的共享状态来构造这个promise.  
+promise();      
+
+2) 使用一个空的共享状态来构造这个promise. 这个共享状态是被alloc给分配的。Alloc必须满足Allocator的要求。
+template<class Alloc> 
+promise( std::allocator_arg_t, const Alloc& alloc);  
+
+3) Move构造函数。使用move语义，用other的共享状态来构造promise. 构造之后，other将没有共享状态。  
+promise( promise&& other);  
+
+4) promise不是copyable的。  
+promise(const promise& other) = delete;  
+
+## 2. 析构函数  
+
+~promise();  
+放弃共享状态。  
+- 如果共享状态是ready的，释放（release）它。  
+- 如果共享状态是没有ready的，存储一个异常（std::future_error类型，带错误码std::future_errc::broken_promise），使共享状态为ready，然后再release它。  
+
+## 3. std::promise::operator=  
+
+1) Move赋值操作符。首先，放弃共享状态（如同析构函数），然后将other的共享状态赋值过来，就如同执行了std::promise(std::move(other)).swap(*this).  
+promise& operator=( promise&& other );  
+
+2) promise不是拷贝可赋值的（not copy-assignable）。 
+promise& operator( const promise& rhs ) = delete;  
+
+## 4. std::promise::swap  
+
+交换2个promise对象的共享状态。  
+void swap( promise& other );  
+
+## 5. std::promise::get_future  
+
+std::future<T> get_future();  
+返回一个future对象，该对象所关联的共享状态和*this所关联的共享状态是同一个。  
+
+如果 *this 没有共享状态或者get_future已经被调用了，就会抛出异常。为了得到promise-future通信渠道的多个“弹出”端（pop end），要使用 std::future::shared.  
+
+异常：  
+std::future_error 在下列条件满足时被抛出：  
+- *this 没有共享状态。错误分类被设置为 no_state.  
+- get_future() 已经被一个拥有相同共享状态的promise调用。错误分类被设置为 future_already_retrieved.  
+
+## 6. std::promise::set_value  
+
+(1) void set_value( const R& value ); 
+(2) void set_value( R&& value );  
+(3) void set_value( R& value );  
+(4) set_value();  
+
+原子性地将值存储到共享状态，并使得共享状态ready.  
+该操作就如同set_value, set_exception, set_value_at_thread_exit, set_exception_at_thread_exit 在更新promise对象时获得了一个和该promise对象相关联的唯一mutex.  
+如果没有共享状态或者共享状态已经存储了一个值或者异常，就会有异常被抛出。  
+
+异常：  
+std::future_error 在下列条件时会被抛出：  
+- *this 没有共享状态。错误分类被设置为 no_state.  
+- 共享状态已经存储了一个值或者异常。错误分类被设置为 promise_already_satisfied.  
+另外，
+(1)和(2): 任何被值的拷贝构造函数抛出的异常也会继续被抛出。    
+(3): 任何被值的move构造函数抛出的异常也会继续被抛出。  
+
+示例程序：  
+```{cpp}
+#include <thread>
+#include <future>
+#include <cctype>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <iostream>
+#include <sstream>
+ 
+int main()
+{
+    std::istringstream iss_numbers{"3 4 1 42 23 -23 93 2 -289 93"};
+    std::istringstream iss_letters{" a 23 b,e a2 k k?a;si,ksa c"};
+ 
+    std::vector<int> numbers;
+    std::vector<char> letters;
+    std::promise<void> numbers_promise, letters_promise;
+ 
+    auto numbers_ready = numbers_promise.get_future();
+    auto letter_ready = letters_promise.get_future();
+ 
+    std::thread value_reader([&]
+    {
+        // I/O operations.
+        std::copy(std::istream_iterator<int>{iss_numbers},
+                  std::istream_iterator<int>{},
+                  std::back_inserter(numbers));
+ 
+        //Notify for numbers.
+        numbers_promise.set_value();
+ 
+        std::copy_if(std::istreambuf_iterator<char>{iss_letters},
+                     std::istreambuf_iterator<char>{},
+                     std::back_inserter(letters),
+                     ::isalpha);
+ 
+        //Notify for letters.
+        letters_promise.set_value();
+    });
+ 
+ 
+    numbers_ready.wait();
+ 
+    std::sort(numbers.begin(), numbers.end());
+ 
+    if (letter_ready.wait_for(std::chrono::seconds(1)) ==
+            std::future_status::timeout)
+    {
+        //output the numbers while letters are being obtained.
+        for (int num : numbers) std::cout << num << ' ';
+        numbers.clear(); //Numbers were already printed.
+    }
+ 
+    letter_ready.wait();
+    std::sort(letters.begin(), letters.end());
+ 
+    //If numbers were already printed, it does nothing.
+    for (int num : numbers) std::cout << num << ' ';
+    std::cout << '\n';
+ 
+    for (char let : letters) std::cout << let << ' ';
+    std::cout << '\n';
+ 
+    value_reader.join();
+}
+
+/** Output:  
+-289 -23 1 2 3 4 23 42 93 93
+a a a a b c e i k k k s s
+**/  
+
+```
+
+## 7. std::promise::set_value_at_thread_exit   
+
+(1) void set_value_at_thread_exit(const R& value);
+(2) void set_value_at_thread_exit(R&& value);  
+(3) void set_value_at_thread_exit(R& value);  
+(4) void set_value_at_thread_exit();  
+
+把值写入共享状态但并不立即使得该共享状态ready. 当该线程退出的时候，在所有thread-locak的变量都被销毁的时候，该共享状态才变为ready.  
+本操作就如同当更新一个promise对象的时候，set_value, set_exception, set_value_at_thread_exit和set_exception_at_thread_exit获得了一个和该promise对象相关的mutex. (The operation behaves as though set_value, set_exception, set_value_at_thread_exit, and set_exception_at_thread_exit acquire a single mutex associated with the promise object while updating the promise object.)  
+如果没有共享状态或者共享状态已经存储了一个值或者异常，就会有异常抛出。  
+
+异常：  
+std::future_error 会在下列条件下抛出：  
+- *this 没有共享状态。错误分类将被设为no_state.  
+- 共享状态已经存储了一个值或者异常。错误分类被设置为 promise_already_satisfied.  
+另外：  
+1-2) 值的拷贝构造函数所抛出的异常也会被抛出。
+3) 值的move构造函数所抛出的异常也会被抛出。  
+
+示例代码：  
+```{cpp}
+#include <iostream>
+#include <future>
+#include <thread>
+ 
+int main()
+{
+    // using namespace std::chrono_literals;
+    std::promise<int> p;
+    std::future<int> f = p.get_future();
+    std::thread([&p] {
+          // std::this_thread::sleep_for(1s);
+          std::this_thread::sleep_for(std::chrono::seconds(1));
+          p.set_value_at_thread_exit(9);
+    }).detach();
+ 
+    std::cout << "Waiting..." << std::flush;
+    f.wait();
+    std::cout << "Done!\nResult is: " << f.get() << '\n';
+}
+
+/**  Output
+Waiting...Done!
+Result is: 9
+**/ 
+```
+
+## 8. std::promise::set_exception  
+
+void set_exception(std::exception_ptr p);  
+
+原子性地将异常指针p写入共享状态，并使得共享状态成为ready状态。  
+本操作就如同当更新一个promise对象的时候，set_value, set_exception, set_value_at_thread_exit和set_exception_at_thread_exit获得了一个和该promise对象相关的mutex. (The operation behaves as though set_value, set_exception, set_value_at_thread_exit, and set_exception_at_thread_exit acquire a single mutex associated with the promise object while updating the promise object.)  
+如果没有共享状态或者共享状态已经存储了一个值或者异常，就会有异常抛出。  
+
+异常：  
+std::future_error 发生在以下条件时：  
+- *this 没有共享状态。错误分类将被设为no_state.  
+- 共享状态已经存储了一个值或者异常。错误分类被设置为 promise_already_satisfied.  
+
+示例程序：  
+```{cpp}
+#include <thread>
+#include <iostream>
+#include <future>
+ 
+int main()
+{
+    std::promise<int> result;
+ 
+    std::thread t([&]{
+            try {
+                // code that may throw
+                throw std::runtime_error("Example");
+            } catch(...) {
+                try {
+                    // store anything thrown in the promise
+                    result.set_exception(std::current_exception());
+                } catch(...) {} // set_exception() may throw too
+            }
+    });
+ 
+    try {
+        
+        std::cout << result.get_future().get();
+    } catch(const std::exception& e) {
+        std::cout << "Exception from the thread: " << e.what() << '\n';
+    }
+    t.join();
+}
+
+/** Output: 
+Exception from the thread: Example
+**/  
+```
+
+## 9. std::promise::set_exception_at_thread_exit  
+
+void set_exception_at_thread_exit(std::exception_ptr p);  
+
+将异常指针p写入共享状态，但并不使得共享状态立即变为ready. 当前线程退出的时候，共享状态才变为ready,也就是在所有thread-local生命周期的变量都被销毁之后。  
+本操作就如同当更新一个promise对象的时候，set_value, set_exception, set_value_at_thread_exit和set_exception_at_thread_exit获得了一个和该promise对象相关的mutex. (The operation behaves as though set_value, set_exception, set_value_at_thread_exit, and set_exception_at_thread_exit acquire a single mutex associated with the promise object while updating the promise object.)  
+如果没有共享状态或者共享状态已经存储了一个值或者异常，就会有异常抛出。  
+
+异常：  
+std::future_error 发生在以下条件时：  
+- *this 没有共享状态。错误分类将被设为no_state.  
+- 共享状态已经存储了一个值或者异常。错误分类被设置为 promise_already_satisfied.  
+
+## 10. std::swap(std::promise)  
+
+定义在头文件 <future> 中。  
+template<class R>  
+void swap( promise<R>& lhs, promise<R>& rhs);  
+为std::promise而特化std::swap. 交换lhs和rhs的共享状态。高效地调用 lhs.swap(rhs).  
+
+## 11. 总示例程序 
+
+```{cpp}
+#include <vector>
+#include <thread>
+#include <future>
+#include <numeric>
+#include <iostream>
+ 
+void accumulate(std::vector<int>::iterator first,
+                std::vector<int>::iterator last,
+                std::promise<int> accumulate_promise)
+{
+    int sum = std::accumulate(first, last, 0);
+    accumulate_promise.set_value(sum);  // Notify future
+}
+ 
+int main()
+{
+    std::vector<int> numbers = { 1, 2, 3, 4, 5, 6 };
+    std::promise<int> accumulate_promise;
+    std::future<int> accumulate_future = accumulate_promise.get_future();
+    std::thread work_thread(accumulate, numbers.begin(), numbers.end(),
+                            std::move(accumulate_promise));
+    accumulate_future.wait();  // wait for result
+    std::cout << "result=" << accumulate_future.get() << '\n';
+    work_thread.join();  // wait for thread completion
+}
+
+/** Output: 
+result=21
+**/  
+```

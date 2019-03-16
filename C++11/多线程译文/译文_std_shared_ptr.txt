@@ -1,0 +1,27 @@
+http://www.cplusplus.com/reference/memory/shared_ptr/
+
+std::shared_ptr
+
+template<class T> class shared_ptr;
+
+共享指针（shared pointer）管理指针的存储，提供有限的垃圾回收的功能，可能会与其他对象共享此指针管理。
+
+shared_ptr类型的对象具有获得一个指针所有权的能力，并且能分享此所有权： 一旦取得了所有权，当最后一个所有者释放所有权的时候，这些所有者就要负责删除指针。
+
+一旦shared_ptr对象被销毁(destroyed) ，或者一旦它们的值通过赋值操作符或显式调用shared_ptr::reset而被改变的时候，share_ptr对象就释放了对原来对象的所有权。一旦所有的shared_ptr对象（共享一个指针的所有权的对象）都释放了所有权，该被管理的对象就会被删除（一般通过调用::delete来删除），但（如需不同的删除方法）一个不同的deleter可能在构造函数中被指定。
+
+shared_ptr对象可以仅仅通过复制它们的值来共享所有权：如果2个shared_ptr被构造自同一个非shared_ptr指针，它们两个都会拥有这个指针而并不share它。这会导致潜在的访问问题：当这2个shared_ptr其中之一release了这个指针（即删除了所指对象）时，另一个shared_ptr就会指向一个无效的地址。
+
+另外，shared_ptr对象可以在共享某个指针的所有权的同时，其实指向的时另一个对象。这个能力被称为别名（aliasing），它一般被用来指向成员对象，但拥有这些成员对象所属的对象。因此，一个shared_ptr其实和以下2个指针相关：
+- a stored pointer，就是所指向的指针，也就是用operator *来解引用的那个指针，也就是用get()得到的那个指针；
+- An owned pointer（可能被共享的），也就是这些所有者(ownership group)可以去deleting的指针，也就是对其进行使用计数的那个指针。
+
+一般来说，stored pointer和owned pointer指向相同的东西，但是alias shared_ptr对象（用alias constructor构建的对象和它们的copy）的这2个指针却可能指向不同的对象。
+
+一个并不拥有任何指针的shared_ptr被称作empty shared_ptr. 
+一个什么对象都不指向的shared_ptr被称作 null shared_ptr，并且不能被解引用(dereferenced). 
+一个empty shared_ptr不一定是一个null shared_ptr，反之亦然。
+
+通过operator *和operator ->以访问所指向的对象，shared_ptr复制了有限的指针功能。因为安全的原因，shared_ptr对象不提供指针运算。
+
+一个相关的类，weak_ptr，能够和shared_ptr对象共享指针却并不拥有它们。

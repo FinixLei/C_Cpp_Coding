@@ -1,0 +1,22 @@
+std::thread::id
+
+定义在头文件<thread>中。
+class thread::id;   (since C++11)
+
+类thread::id是一个轻量级的、普通的可拷贝的类，主要是作为std::thread类的对象的标识。
+这个类的实例也可能拥有一些特殊的唯一值，而这个值并不代表任何线程。一旦一个线程结束了，std::thread::id的值就有可能被其他线程再次使用。
+这个类是被设计用作关联容器(associative containers)的key的，既可以是排序的，也可以是非排序的。
+
+成员函数：
+构造函数    构造一个ID，但这并不代表一个线程(constructs an id that does not represent a thread)
+
+非成员函数：
+operator == 
+operator !=
+operator <  比较2个std::thread::id对象
+operator <=
+operator >
+operator >=
+
+帮助类（Helper Classes）
+std::hash<std::thread::id>  特化std::hash（类模板特化）

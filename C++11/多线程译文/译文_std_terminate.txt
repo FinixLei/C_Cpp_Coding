@@ -1,0 +1,33 @@
+原文： http://en.cppreference.com/w/cpp/error/terminate
+
+定义在<exception>中。
+void terminate();                (until C++11)
+[[noreturn]] void terminate();   (since C++11)
+
+当异常处理因为以下原因失败时，std::terminate()就会在C++运行时被调用。
+
+1) 一个异常被抛出但没有被捕获（由实现定义是否栈展开已经完成(implementation-defined whether any stack unwinding is done)）。[译注： 关于栈展开(stack unwinding)，可参见:http://blog.csdn.net/nirendao/article/details/50858791]
+
+2) 在异常处理过程中抛出异常（比如，来自于某本地对象的析构，或者来自于异常处理过程中必然要调用到的一个函数）。
+
+3) 一个静态对象或线程本地对象的构造函数或析构函数抛出一个异常。
+
+4) 使用std::atexit或std::at_quick_exit注册的函数抛出异常。
+
+5) noexception规范(http://en.cppreference.com/w/cpp/language/noexcept_spec)被违反（由实现定义是否栈展开已经完成(implementation-defined whether any stack unwinding is done)）。
+
+6) dynamic exception规范（http://en.cppreference.com/w/cpp/language/except_spec）被违反（由实现定义是否栈展开已经完成(implementation-defined whether any stack unwinding is done)）。
+
+7) std::unexpected的一个非默认handler抛出了一个异常，而这个异常违反了之前违反的dynamic exception规范，如果该规范没有包含std::bad_exception. 
+
+8) 如果std::nested_exception::rethrow_nested被一个并不hold所抓取到的异常的对象调用。
+
+9) 一个异常被std::thread的初始化函数抛出。
+
+10) 一个joinable的std::thread被销毁或被赋值给其他。(关于joinable和detach，可参见此博文：http://blog.csdn.net/nirendao/article/details/50830899)
+
+std::terminate也可能被程序直接调用。
+在任何情况下，std::terminate会调用当前被安装的std::terminate_handler. 默认的std::terminate_handler是std::abort. 
+
+
+一个析构函数在栈展开（stack unwinding）的时候reset terminate handler，而栈展开后导致terminate被调用，那么在throw表达式的最后被安装的handler就是会被调用的handler. (注意，关于是否重新抛出被应用的新handler是有二义性的。)

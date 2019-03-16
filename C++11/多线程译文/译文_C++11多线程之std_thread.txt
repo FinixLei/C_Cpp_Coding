@@ -1,0 +1,32 @@
+原文： http://en.cppreference.com/w/cpp/thread/thread
+
+定义在<thread>中。
+
+thread类代表的是单一线程的执行(https://en.wikipedia.org/wiki/Thread_(computing))。 线程允许多个函数同时执行。
+当相关thread对象构造完成后，threads就可以立即开始执行了（也可能要等待操作系统规划的延时结束）。执行的是顶层函数（top-level function），而所谓顶层函数就是传给thread构造函数的参数之一（译注：thread构造函数的第一个参数即为该thread要去执行的函数）。该顶层函数的返回值会被忽略，并且如果因为抛出异常而终止了，std::terminate 会被调用。该顶层函数可能会通过 std::promise 或更改共享变量（这可能会要求同步，参见 std::mutex 和 std::atomic）将其返回值或异常传递给调用者。 
+
+std::thread对象也可能处于不代表任何线程的状态（在默认构造之后，或在move from之后，或在detach之后，或在join之后），而一个线程的执行也可能不和任何thread对象相关联（比如在detach之后）。
+不存在2个std::thread对象可以代表同一个线程的执行；std::thread不是“拷贝可构造”(CopyConstructable)或拷贝可赋值(CopyAssignable)的，尽管它是MoveConstructible 和 MoveAssignable 的。
+
+成员类：
+id      代表一个thread的id 
+
+成员函数：
+    构造函数
+    析构函数
+    operator =      moves thread对象 
+
+    Observers:
+      joinable              检查该线程是否joinable，即能否并行运行(potentially running in parallel context)
+      get_id                返回该thread的id 
+      native_handle         返回thread处理的底层实现
+      hardware_concurrency  返回能同时共存的threads数目(C++17)
+      
+    Operations：
+      join      等待一个线程执行结束
+      detach    允许在线程处理(thread handle)之外无依赖地执行
+      swap      交换2个thread对象
+  
+非成员函数：
+    std::swap(std::thread)      std::swap算法的特化
+    

@@ -1,0 +1,81 @@
+原文： http://en.cppreference.com/w/cpp/concept/CopyConstructible
+原文： http://en.cppreference.com/w/cpp/concept/MoveConstructible
+原文： http://en.cppreference.com/w/cpp/concept/CopyAssignable
+原文： http://en.cppreference.com/w/cpp/concept/MoveAssignable
+
+1. CopyConstructible
+
+指的是一个类型的实例可以从一个左值表达式拷贝构造。
+
+要求
+该类型T满足CopyConstructible, 如果：
+    - 类型T满足MoveConstructible，并且
+给定
+    - v， 它是类型T或const T的左值表达式，或const T的右值表达式
+    - u， 任意标识
+以下的表达式总是有效并有特定的结果： 
+
+表达式          后续特征
+T u = v;        u的值等于v的值。 v的值不会改变。
+T u(v);         T(v)的值等于v的值。v的值不会改变。
+
+表达式v.~T()一定是有效的，并且，对于左值v，&v 必须是类型T*或const T*，且必须等于v的地址。
+
+注意：
+直到C++11，重载了operator &的类都不是CopyConstructible的，因此不能够用于标准库的容器。自从C++11起，在任何需要获得一个对象的地址的时候，标准库都使用std::addressof去获得。
+
+
+2. MoveConstructible
+
+指的是一个类型的实例可以由一个右值参数来构造。
+
+要求：
+
+类型T满足MoveConstructible， 如果：
+给定
+    - rv， 类型T的右值表达式
+    - u， 任意标识
+以下的表达式必须有效且有特定的结果：
+
+表达式                 后续特征
+T u = rv;           u的值等于在初始化之前的rv的值。rv的新值是不确定的。
+T(rv);              T(rv)的值等于在初始化之前的rv的值。rv的新值是不确定的。
+
+注意：
+一个类不是必须要实现一个move 构造函数来满足这个类型要求；一个携带了const T & 参数的copy构造函数可以绑定右值操作符。
+如果一个MoveConstructible类实现了一个move构造函数，它也可以实现move语义(move semantics)来利用“在构造之后的rv的值是不确定的”。
+
+
+3. CopyAssignable
+
+指的是一个类型的实例可以拷贝赋值一个左值表达式。
+
+要求
+类型T满足CopyAssignable，如果：
+    - 类型T满足MoveAssignable， 并且
+给定
+    - t，类型T的一个可变的左值表达式
+    - v，类型T或const T的左值表达式，或const T类型的右值表达式
+以下的表达式必须有效且结果特定：
+
+表达式     返回类型    返回值     后续特征
+t = v;      T&          t       t的值等同于v的值。v的值不变。
+
+
+4. MoveAssignable （since C++11）
+
+指的是一个类型的实例可以被赋值自一个右值参数。
+
+要求
+类型T满足MoveAssignable，如果：
+给定
+    - t，一个类型T的可变的左值表达式
+    - rv，一个类型T的右值表达式
+以下的表达式必须有效且有特定的结果：
+
+表达式     返回类型    返回值     后续特征
+t = rv;     T &         t       t的值等同于在赋值之前的rv的值。rv的新值是不确定的。
+
+注意：
+为满足这个类型要求，该类型不必一定要实现move赋值操作符： 一个携带了以值或者const Type &为参数的copy赋值操作符，可以绑定右值参数。
+如果一个MoveAssignable类实现了一个move赋值操作符，它也可以实现move语义（move semantics）来利用“在赋值之后rv的值是不确定的”。

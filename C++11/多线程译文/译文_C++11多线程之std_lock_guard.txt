@@ -1,0 +1,49 @@
+原文： http://en.cppreference.com/w/cpp/thread/lock_guard
+
+std::lock_guard
+
+lock_guard 类是一个mutex封装者，它为了拥有一个或多个mutex而提供了一种方便的 RAII style 机制。（译注：所谓的RAII，全称为Resource Acquisition Is Initialization，汉语是“资源获取即初始化”。但是这个直译并没有很好地解释这个词组的含义。其实含义并不高深复杂，简单说来就是，在资源获取的时候将其封装在某类的object中，利用"栈资源会在相应object的生命周期结束时自动销毁"来自动释放资源，即，将资源释放写在析构函数中。所以这个RAII其实就是和智能指针的实现是类似的。）
+
+当一个lock_guard对象被创建后，它就会尝试去获得给到它的mutex的所有权。当控制权不在该lock_guard对象所被创建的那个范围后，该lock_guard就会被析构，从而mutex被释放。
+
+如果给定几个mutex，那么死锁避免算法就会被使用，比如 std::lock. (自从C++17)
+
+lock_guard类是 non-copyable的。
+
+示例程序：
+
+#include <thread>
+#include <mutex>
+#include <iostream>
+ 
+int g_i = 0;
+std::mutex g_i_mutex;  // protects g_i
+ 
+void safe_increment()
+{
+    std::lock_guard<std::mutex> lock(g_i_mutex);
+    ++g_i;
+ 
+    std::cout << std::this_thread::get_id() << ": " << g_i << '\n';
+ 
+    // g_i_mutex is automatically released when lock goes out of scope
+}
+ 
+int main()
+{
+    std::cout << __func__ << ": " << g_i << '\n';
+ 
+    std::thread t1(safe_increment);
+    std::thread t2(safe_increment);
+ 
+    t1.join();
+    t2.join();
+ 
+    std::cout << __func__ << ": " << g_i << '\n';
+}
+
+可能的输出：
+main: 0
+140641306900224: 1
+140641298507520: 2
+main: 2

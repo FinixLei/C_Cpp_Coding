@@ -1,0 +1,86 @@
+原文：http://en.cppreference.com/w/cpp/thread
+
+Thread support library （线程支持库）
+
+C++包含了对线程、互斥、条件变量和futures的内在支持。
+
+#线程  
+线程使得程序能够跨多个处理器核心执行。
+
+定义在<thread>头文件中：
+thread (C++11)      管理一个单一线程
+
+##管理当前线程的函数
+定义在this_thread namespace中的：
+yield (C++11)       建议实现重新规划线程的执行时机 (suggests that the implementation reschedule execution of threads)
+get_id (C++11)      返回当前线程的id
+sleep_for (C++11)   停止当前线程的执行，直到指定的时间段之后
+sleep_until (C++11) 停止当前进程的执行，直到指定的时间点
+
+##缓存尺寸访问 (Cache size access)
+定义在 <new> 头文件中：
+hardware_destructive_interference_size (C++17)      最小偏移以避免false共享（min offset to avoid false sharing）
+hardware_constructive_interference_size (C++17)     最大偏移以提升true共享（max offset to promote true sharing）
+
+## 互斥 (Mutual exclusion)
+互斥算法防止多个线程同时访问共享资源。这防止了数据竞争，提供了对线程间同步的支持。
+
+定义在 <mutex> 头文件中：
+mutex (C++11)                   提供基本的互斥功能
+time_mutex (C++11)              提供互斥功能，此互斥功能实现了定时器性质的锁
+recursive_mutex (C++11)         提供互斥功能，此互斥功能可以被同一个线程多次递归地锁住
+recursive_timed_mutex (C++11)   提供互斥功能，此互斥功能可以被同一个线程多次递归地锁住，并且实现了带定时器的锁定
+shared_mutex (C++17)            提供共享的互斥功能
+shared_timed_mutex (C++14)      提供共享的互斥功能
+
+### 普通mutex管理
+
+定义在 <mutex> 头文件中：
+lock_guard (C++11)          实现了一个严格的基于scope的互斥量ownership的封装者(wrapper)
+unique_lock (C++11)         实现了movable的互斥量ownership的封装者(wrapper)
+shared_lock (C++14)         实现了movable的共享的互斥量的ownership的封装者(wrapper)
+defer_lock_t (C++11)        一种标记类型，用以指定锁定策略
+try_to_lock_t (C++11)       同上
+adopt_lock_t (C++11)        同上
+defer_lock (C++11)          标记常量，用以指定锁定策略
+try_to_lock (C++11)         同上
+adopt_lock (C++11)          同上
+
+###普通锁定算法
+
+try_lock (C++11)    通过反复地调用try_lock，试图获得互斥量的所有权
+lock (C++11)        锁定指定的互斥量，如果有的是unavailable，就进入Block状态
+
+### Call once
+
+once_flag (C++11)   是一个帮助者对象（helper object），用以保证call_once调用该方法仅仅一次
+call_once (C++11)   即使在多个线程中同时调用一个方法，该方法也仅仅被执行一次
+
+##条件变量 (Condition variable)
+
+条件变量是一个同步原语，它使得多线程可以互相通信。它使得一些线程等待（）或者超时另一个线程的通知以使得它们继续。
+一个条件变量总是伴随着一个互斥量。
+
+定义在 <condition_variable> 头文件中：
+condition_variable (C++11)          提供一个条件变量，配合使用的是std::unique_lock
+condition_vairable_any (C++11)      提供一个条件变量，可以配合任意的lock类型
+notify_all_at_thread_exit (C++11)   当线程结束的时候，规划一个对notify_all的调用
+cv_status (C++11)                   列出等在条件变量Shanghai的可能的结果 (lists the possible results of timed waits on condition variables)
+
+## Futures
+
+标准库提供一些功能以观察被返回的值以及抓取被异步任务（即：在其他线程启动的函数）所抛出的异常。这些值以一种共享的状态来被传送。在这种共享状态下，异步任务可以写返回值或存储一个异常，而这个值或异常可以被持有std::future或std::shared_future实例的其他线程来检查、等待和操作。
+
+定义在 <future> 头文件中：
+promise (C++11)         为异步的获取而存储一个值
+packaged_task (C++11)   打包一个函数，以便为异步的获取而存储该函数的返回值
+future (C++11)          等待一个被设为异步的值
+shared_future (C++11)   等待一个被设为异步的值（该值可能被其他futures所引用）
+async (C++11)           异步地运行一个函数（在一个新的线程中），并返回一个含有结果的std::future
+launch (C++11)          为std::async指定launch的策略
+future_status (C++11)   指定作用在std::future和std::shared_future上的结果
+
+### Future errors
+future_error (C++11)        报告一个关于futures或promises的错误
+future_category (C++11)     指定该future error的种类
+future_errc (C++11)         指定该future error的代码

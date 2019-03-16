@@ -1,0 +1,109 @@
+原文： http://en.cppreference.com/w/cpp/thread/condition_variable
+
+std::condition_variable
+
+定义在头文件<condition_variable>
+class condition_variable;   (since C++11)
+
+condition_variable类是一个同步原语，可以被用来阻塞一个线程或者同时阻塞多个线程，直到另一个线程既修改了共享变量（即“条件”)，也做了通知。
+
+想要修改共享变量（即“条件”）的线程必须：
+1. 获得一个std::mutex(一般来说是通过std::lock_guard获得)
+2. 当持有锁的时候，执行修改动作
+3. 对std::condition_variable执行notify_one或notify_all(当做notify动作时，不必持有锁)
+
+即使共享变量是原子性的，它也必须在mutex的保护下被修改，这是为了能够将改动正确发布到正在等待的线程。
+
+任意要等待std::condition_variable的线程必须：
+1. 获取std::unique_lock<std::mutex>，这个mutex正是用来保护共享变量（即“条件”）的
+2. 执行wait, wait_for或者wait_until. 这些等待动作原子性地释放mutex，并使得线程的执行暂停
+3. 当获得条件变量的通知，或者超时，或者一个虚假的叫醒（https://en.wikipedia.org/wiki/Spurious_wakeup），那么线程就会被唤醒，并且获得mutex. 然后线程应该检查条件是否成立，如果是虚假唤醒，就继续等待。
+【译注： 所谓虚假唤醒，就是因为某种未知的罕见的原因，线程被从等待状态唤醒了，但其实共享变量（即条件）并未变为true。因此此时应继续等待】
+
+std::condition_variable只能和std::unique_lock<std::mutex>一起工作；这个限制使得在某些平台上能够获得最大效率。std::condition_variable_any提供了一种能够和BasicLockable的对象一起工作的条件变量。
+【译注：BasicLockable指的是为实现互斥而所需的最小特性集，即符合BasicLockable的类型，其对象必须至少要能有lock()和unlock()的能力。】
+【译注：std::condition_variable_any是对std::condition_variable类的泛化。std::condition_variable只能和std::unique_lock<std::mutex>一起工作，而std::condition_variable_any则可以和只要是满足BasicLockable的用户自定义的lock类一起工作。】
+
+条件变量允许同时调用wait, wait_for, wait_until, notify_one和notify_all这些成员函数。
+std::condtion_variable类是StandardLayoutType. 它不是CopyConstructible, MoveConstructible, CopyAssignable, MoveAssignable的。
+
+成员类型
+
+成员类型                    定义
+native_handle_type      implementation-defined (译注：由实现定义)
+
+成员函数
+
+构造函数                构造对象(public)
+析构函数                析构对象(public)
+operator=[deleted]      not copy-assignable(public)
+notify_one              通知一个等待线程(public)
+notify_all              通知所有等待线程(public)
+wait                    阻塞当前线程直至条件变量被唤醒(public)
+wait_for                阻塞当前线程直至条件变量被唤醒或超时(public)
+wait_until              阻塞当前线程直至条件变量被唤醒或直到指定的时间点(public)
+native_handle           返回native handle(public)
+
+示例程序
+条件变量和std::mutex合用，这是为了线程间通信。
+
+#include <iostream>
+#include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+ 
+std::mutex m;
+std::condition_variable cv;
+std::string data;
+bool ready = false;
+bool processed = false;
+ 
+void worker_thread()
+{
+    // Wait until main() sends data
+    std::unique_lock<std::mutex> lk(m);
+    cv.wait(lk, []{return ready;});
+ 
+    // after the wait, we own the lock.
+    std::cout << "Worker thread is processing data\n";
+    data += " after processing";
+ 
+    // Send data back to main()
+    processed = true;
+    std::cout << "Worker thread signals data processing completed\n";
+ 
+    // Manual unlocking is done before notifying, to avoid waking up
+    // the waiting thread only to block again (see notify_one for details)
+    lk.unlock();
+    cv.notify_one();
+}
+ 
+int main()
+{
+    std::thread worker(worker_thread);
+ 
+    data = "Example data";
+    // send data to the worker thread
+    {
+        std::lock_guard<std::mutex> lk(m);
+        ready = true;
+        std::cout << "main() signals data ready for processing\n";
+    }
+    cv.notify_one();
+ 
+    // wait for the worker
+    {
+        std::unique_lock<std::mutex> lk(m);
+        cv.wait(lk, []{return processed;});
+    }
+    std::cout << "Back in main(), data = " << data << '\n';
+ 
+    worker.join();
+}
+
+输出
+main() signals data ready for processing
+Worker thread is processing data
+Worker thread signals data processing completed
+Back in main(), data = Example data after processing

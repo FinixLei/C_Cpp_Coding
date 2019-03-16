@@ -1,3 +1,5 @@
+# This is a deprecated file. Do not use it. 
+
 GPP := g++ -std=c++11
 CC := gcc
 

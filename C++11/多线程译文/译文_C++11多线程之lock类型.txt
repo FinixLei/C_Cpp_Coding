@@ -1,0 +1,67 @@
+原文： 
+http://en.cppreference.com/w/cpp/thread/lock_tag_t
+http://en.cppreference.com/w/cpp/thread/lock_tag
+
+lock类型: std::defer_lock_t, std::try_to_lock_t, std::adopt_lock_t  
+
+定义在头文件 <mutex> 中。
+- struct defer_lock_t {};     (since C++11)  
+- struct try_to_lock_t {};    (since C++11)  
+- struct adopt_lock_t {};     (since C++11)  
+
+std::defer_lock_t, std::try_to_lock_t, std::adopt_lock_t 是空的结构体，用来起到一个标记的作用，可以被用于 std::lock_guard, std::unique_lock, 和 std::shared_lock(C++14). 
+
+类型                实例             效果
+defer_lock_t        defer_lock      不会立即获得mutex的所有权  
+try_to_lock_t       try_to_lock     尝试获得mutex的所有权，而不会阻塞  
+adopt_lock_t        adopt_lock      假设调用者线程已经获得mutex的所有权  
+    
+示例程序： 
+```{cpp}
+#include <mutex>
+#include <thread>
+#include <iostream>
+ 
+struct bank_account {
+    explicit bank_account(int balance) : balance(balance) {}
+    int balance;
+    std::mutex m;
+};
+ 
+void transfer(bank_account &from, bank_account &to, int amount)
+{
+    // lock both mutexes without deadlock
+    std::lock(from.m, to.m);
+    // make sure both already-locked mutexes are unlocked at the end of scope
+    std::lock_guard<std::mutex> lock1(from.m, std::adopt_lock);
+    std::lock_guard<std::mutex> lock2(to.m, std::adopt_lock);
+ 
+// equivalent approach:
+//    std::unique_lock<std::mutex> lock1(from.m, std::defer_lock);
+//    std::unique_lock<std::mutex> lock2(to.m, std::defer_lock);
+//    std::lock(lock1, lock2);
+ 
+    from.balance -= amount;
+    to.balance += amount;
+}
+ 
+int main()
+{
+    bank_account my_account(100);
+    bank_account your_account(50);
+ 
+    std::thread t1(transfer, std::ref(my_account), std::ref(your_account), 10);
+    std::thread t2(transfer, std::ref(your_account), std::ref(my_account), 5);
+ 
+    t1.join();
+    t2.join();
+    
+    std::cout << "my_account: " << my_account.balance << std::endl;
+    std::cout << "your_account: " << your_account.balance << std::endl;
+}
+
+// Output
+// my_account: 95
+// your_account: 55
+
+```

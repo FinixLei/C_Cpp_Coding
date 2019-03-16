@@ -1,3 +1,3 @@
 # C\_CPP\_Samples
 
-Just some simple samples for C/CPP programs. 
+**Baisc samples and Classic samples for C/C++ programming.** 

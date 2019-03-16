@@ -1,0 +1,238 @@
+原文链接：  
+http://en.cppreference.com/w/cpp/thread/packaged_task
+http://en.cppreference.com/w/cpp/thread/packaged_task/packaged_task
+http://en.cppreference.com/w/cpp/thread/packaged_task/~packaged_task
+http://en.cppreference.com/w/cpp/thread/packaged_task/valid
+http://en.cppreference.com/w/cpp/thread/packaged_task/get_future
+http://en.cppreference.com/w/cpp/thread/packaged_task/make_ready_at_thread_exit
+http://en.cppreference.com/w/cpp/thread/packaged_task/reset
+
+
+# std::packaged_task  
+
+定义在头文件 <future> 中。  
+(1) template< class > class packaged_task;  // not defined  
+(2) 
+template< class R, class ...Args >
+class packaged_task<R(Args...)>;  
+
+类模板 std::packaged_task 可以封装任何 Callable 的目标（如：函数、lambda表达式、bind expression、或其他函数对象），因此它可以被异步地调用。它的返回值或抛出的异常是被存储在共享状态（shared state）中的，而该共享状态可以通过std::future 对象被访问。  
+
+正如std::function, std::packaged_task是一个多态的、分配敏感的容器：在其中存储的callable的目标可能被分配在堆上，或者自带一个allocator.  
+
+## 构造函数  
+
+1) pacakged_task();
+   构造一个不带task或shared state的packaged_task对象。
+   
+2)  
+template<class F> 
+explicit packaged_task(F&& f);  
+
+构造一个packaged_task对象，它带有一个shared state和一个task的拷贝，该拷贝以std::forward<F>(f)来初始化。This constructor does not participate in overload resolution if std::decay<F>::type is the same type as std::packaged_task<R(ArgTypes...)>.  
+
+5) packaged_task( packaged_task&& rhs );
+   构造一个packaged_task对象，它带有rhs所拥有的task和shared state，但调用后将使得rhs不具有shared state和task.  
+   
+示例程序：  
+```{cpp}
+#include <future>
+#include <iostream>
+#include <thread>
+ 
+int fib(int n)
+{
+    if (n < 3) return 1;
+    else return fib(n-1) + fib(n-2);
+}
+ 
+int main()
+{
+    std::packaged_task<int(int)> fib_task(&fib); 
+ 
+    std::cout << "starting task\n";
+    auto result = fib_task.get_future();
+    std::thread t(std::move(fib_task), 40);
+ 
+    std::cout << "waiting for task to finish...\n";
+    std::cout << result.get() << '\n';
+ 
+    std::cout << "task complete\n";
+    t.join();
+}
+
+/* Output:　
+starting task
+waiting for task to finish...
+102334155
+task complete
+*/
+```
+
+## 析构函数  
+~packaged_task();  
+禁止shared state并销毁所存储的task对象。  
+
+## operator =  
+略  
+
+## valid函数
+bool valid() const;  
+检查 *this 是否有一个共享状态。  
+
+## get_future函数  
+std::future<R> get_future();  
+返回一个future对象，它和 *this 共享同一个shared state.  
+对每一个packaged_task, get_future只能被调用一次。  
+
+异常： 
+std::future_error会出现在以下的条件下： 
+- 如果已经调用过了get_future，此时再调用，会出现 future_already_retrieved 错误；
+- 如果 *this 没有shared state，那么错误类别是 no_state. 
+
+## make_ready_at_thread_exit  
+void make_ready_at_thread_exit( ArgTypes... args );  
+
+使用转交的args作为参数，调用所存储的task. task的返回值或任何抛出的异常都被存储在 *this 的shared state中。  
+仅仅在线程退出，并且所有的线程局部变量都被销毁后，shared state才会被变成ready.  
+
+异常：  
+std::future_error 会出现在下列的错误条件上。  
+所存储的task已经被调用了。那么错误类别为 promise_already_satisfied.  
+*this 没有shared state. 错误类别为 no_state.  
+
+示例程序：  
+```{cpp}
+// Not supported by g++ 4.9.3 or Visual Studio 2013
+
+#include <future>
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <functional>
+#include <utility>
+ 
+void worker(std::future<void>& output)
+{
+    std::packaged_task<void(bool&)> my_task{ [](bool& done) { done=true; } };
+ 
+    auto result = my_task.get_future();
+ 
+    bool done = false;
+ 
+    my_task.make_ready_at_thread_exit(done); // execute task right away
+ 
+    std::cout << "worker: done = " << std::boolalpha << done << std::endl;
+ 
+    auto status = result.wait_for(std::chrono::seconds(0));
+    if (status == std::future_status::timeout)
+        std::cout << "worker: result is not ready yet" << std::endl;
+ 
+    output = std::move(result);
+}
+ 
+ 
+int main()
+{
+    std::future<void> result;
+ 
+    std::thread{worker, std::ref(result)}.join();
+ 
+    auto status = result.wait_for(std::chrono::seconds(0));
+    if (status == std::future_status::ready)
+        std::cout << "main: result is ready" << std::endl;
+}
+```
+
+## reset 函数  
+
+void reset();  
+丢弃之前的执行，重置状态。新的shared state被构建。  
+等同于 *this = packaged_task(std::move(f)), f就是task.  
+
+示例程序：  
+```{cpp}
+#include <iostream>
+#include <cmath>
+#include <thread>
+#include <future>
+ 
+int main()
+{
+    std::packaged_task<int(int,int)> task([](int a, int b) {
+        return std::pow(a, b);
+    });
+    std::future<int> result = task.get_future();
+    task(2, 9);
+    std::cout << "2^9 = " << result.get() << '\n';
+ 
+    task.reset();
+    result = task.get_future();
+    std::thread task_td(std::move(task), 2, 10);
+    task_td.join();
+    std::cout << "2^10 = " << result.get() << '\n';
+}
+
+/* Output:
+2^9 = 512
+2^10 = 1024
+*/
+```
+
+## 总示例程序  
+```{cpp}
+#include <iostream>
+#include <cmath>
+#include <thread>
+#include <future>
+#include <functional>
+ 
+// unique function to avoid disambiguating the std::pow overload set
+int f(int x, int y) { return std::pow(x,y); }
+ 
+void task_lambda()
+{
+    std::packaged_task<int(int,int)> task([](int a, int b) {
+        return std::pow(a, b); 
+    });
+    std::future<int> result = task.get_future();
+ 
+    task(2, 9);
+ 
+    std::cout << "task_lambda:\t" << result.get() << '\n';
+}
+ 
+void task_bind()
+{
+    std::packaged_task<int()> task(std::bind(f, 2, 11));
+    std::future<int> result = task.get_future();
+ 
+    task();
+ 
+    std::cout << "task_bind:\t" << result.get() << '\n';
+}
+ 
+void task_thread()
+{
+    std::packaged_task<int(int,int)> task(f);
+    std::future<int> result = task.get_future();
+ 
+    std::thread task_td(std::move(task), 2, 10);
+    task_td.join();
+ 
+    std::cout << "task_thread:\t" << result.get() << '\n';
+}
+ 
+int main()
+{
+    task_lambda();
+    task_bind();
+    task_thread();
+}
+
+/* Output: 
+task_lambda:    512
+task_bind:      2048
+task_thread:    1024
+*/
+```
