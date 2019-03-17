@@ -47,6 +47,9 @@ int main()
     v5.insert(v5.begin(), array, array+size);   // If use insert, size will increase to 8. 
     // copy(v4.begin(), v4.end(), v5.begin());  // If use copy, the size is still 4. 
 
+    // way-5: vector::vector(number, value)
+    vector<int> v6(3, 10);  // 10 10 10
+    
     // print vectors
     print_vector(v1);
     print_vector(v2_1);
@@ -54,6 +57,7 @@ int main()
     print_vector(v3);
     print_vector(v4);
     print_vector(v5);
+    print_vector(v6);
     
     // const_iterator 迭代器所指内容不变，而迭代器本身可以改变（如++）
     for (vector<int>::const_iterator cvit=v5.begin(); cvit!=v5.end(); cvit++) {
