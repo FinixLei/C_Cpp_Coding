@@ -1,3 +1,24 @@
+/*
+   map - 键值对（关联容器）
+   
+   at() - at(key) is value 
+   
+   count()
+   find()  - iterator(成功) or end() (失败，没找到)
+   
+   insert() - 返回pair<iterator, bool> , true-成功；false,失败（已存在）
+   emplace()
+   erase()
+   
+   clear()
+   empty()
+   max_size()
+   size()
+   
+   equal_range()
+   swap()
+*/
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -81,7 +102,7 @@ int main()
     mymap.emplace("y", 200);
     mymap.emplace("z", 300);
     auto result = mymap.emplace("x", 300);    // pair<iterator, false>, because "x" is alreay there. 
-    cout << "result = " << result.second << endl;
+    cout << "result = " << result.second << endl;  // 0
 
     std::cout << "mymap contains:" << endl;
     for (auto& x: mymap)
