@@ -35,7 +35,7 @@ void siftdown(vector<int>& vec, int i, int size)
 void create_heap(vector<int>& vec)
 {
     int size = vec.size();
-    int i = (size-2)/2;  // 最后一个节点的父节点
+    int i = (size-1)/2;  // 最后一个节点的父节点
     for (; i>=0; --i) {
         siftdown(vec, i, size);
         // print_vector(vec);
