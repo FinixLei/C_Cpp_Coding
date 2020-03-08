@@ -22,6 +22,8 @@ private:
 
 String::String(const char *str)
 {
+    cout << "Enter Constructor\n";
+    
     if (str == NULL) {
         _len = 1; 
         _str = new char [1];
@@ -36,6 +38,7 @@ String::String(const char *str)
 
 String::String(const String& other)
 {
+    cout << "Enter normal copy constructor\n";
     _len = other._len;
     _str = new char [_len];
     strcpy(_str, other._str);
@@ -43,6 +46,7 @@ String::String(const String& other)
 
 String::String(String&& other)
 {
+    cout << "Enter move copy constructor\n";
     _len = other._len;
     char *tmp = other._str;
     other._str = NULL;
@@ -52,6 +56,8 @@ String::String(String&& other)
 
 String& String::operator= (const String& other)
 {
+    cout << "Enter operator = \n";
+    
     if (this == &other) return *this;
     
     _len = 0;

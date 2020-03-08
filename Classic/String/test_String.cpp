@@ -5,19 +5,21 @@ using namespace std;
 
 int main()
 {
-    String a("hello, world!");
-    cout << a << endl; 
+    String a("a ");
+    cout << "a = " << a << endl << endl;
     
-    String b = a; 
-    cout << b << endl; 
+    String b = std::move(a); 
+    // cout << "a = " << a << endl;  // a cannot be used then. 
+    cout << "b = std::move(a); so, b = " << b << endl << endl;
     
-    String c = "Boys and Girls";
-    String d = a + b + c;
-    cout << d << endl; 
+    String c = b;
+    cout << "c = b; so, c = " << c << endl << endl;
     
-    String e = std::move(d);
-    cout << "e: " << e << endl;
-    cout << "d: " << d;
+    String d = std::move(b + c);
+    cout << "d = std::move(b + c); so, d = " << d << endl << endl;
+    
+    String e = b + c;
+    cout << "e = b + c; so, e = " << e << endl << endl;
     
     return 0;
 }
