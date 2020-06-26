@@ -1,4 +1,5 @@
 #include <iostream>
+using namespace std;
 
 class shared_count 
 {
@@ -42,6 +43,7 @@ public:
     }
     
     smart_ptr (const smart_ptr& other) {
+        cout << "common copy constructor\n";
         _ptr = other._ptr; 
         if (_ptr) {
             other._shared_count->add_count();
@@ -51,20 +53,26 @@ public:
     
     template <typename U> 
     smart_ptr (const smart_ptr<U> & other) noexcept {
+        cout << "common copy constructor for diff class\n";
         _ptr = other._ptr;
         if (_ptr) {
             other._shared_count->add_count();
             _shared_count = other._shared_count;
         }
+        cout << "_shared_count = " << _shared_count->get_count() << endl;
     }
     
     template <typename U> 
     smart_ptr(smart_ptr<U>&& other) noexcept {
+        cout << "right value copy constructor\n";
         _ptr = other._ptr; 
         if (_ptr) {
             _shared_count = other._shared_count; 
             other._ptr = nullptr;
         }
+        cout << "other._shared_count=" << other._shared_count->get_count() << endl;
+        cout << "this->_shared_count= " << _shared_count->get_count() << endl;
+        cout << "################\n";
     }
     
     template <typename U>
@@ -83,6 +91,8 @@ public:
     }
     
     smart_ptr& operator = (smart_ptr rhs) noexcept {
+        cout << "operator = \n";
+        cout << "rhs's count = " << rhs._shared_count->get_count() << endl;
         rhs.swap(*this);
         return *this;
     }
