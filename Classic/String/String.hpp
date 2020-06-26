@@ -48,9 +48,8 @@ String::String(String&& other)
 {
     cout << "Enter move copy constructor\n";
     _len = other._len;
-    char *tmp = other._str;
+    _str = other._str;
     other._str = NULL;
-    _str = tmp;
     other._len = 0;
 }
 
