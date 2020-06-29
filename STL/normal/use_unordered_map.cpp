@@ -42,7 +42,7 @@ void test_insert()
     myrecipe.insert (myshopping); 
     
     // move insertion
-    myrecipe.insert (std::make_pair<std::string,double>("eggs",6.0));
+    myrecipe.insert (make_pair("eggs",6.0));
     
     // range insertion
     myrecipe.insert (mypantry.begin(), mypantry.end());

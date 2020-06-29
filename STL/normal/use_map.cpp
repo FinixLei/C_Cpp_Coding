@@ -51,7 +51,7 @@ void test_swap()
 int main()
 {
     map<string, int> mymap;
-    mymap.insert(pair<string, int>("aaa", 100));
+    mymap.insert(make_pair("aaa", 100));
     mymap.insert(pair<string, int>("bbb", 200));
     
     for (auto it=mymap.begin(); it!=mymap.end(); ++it) {

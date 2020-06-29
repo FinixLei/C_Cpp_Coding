@@ -73,7 +73,8 @@ void test_remove_if()
   std::forward_list<int> mylist = {7, 80, 7, 15, 85, 52, 6};
 
   mylist.remove_if (single_digit);      // 80 15 85 52
-  mylist.remove_if (is_odd_object);     // 80 52
+  // mylist.remove_if (is_odd_object);     // 80 52
+  mylist.remove_if ([](int v) {return v%2?true:false;});     // 80 52
 
   std::cout << "mylist contains:";
   for (int& x: mylist) std::cout << ' ' << x;
