@@ -43,8 +43,7 @@ int main()
     // 序列容器-general：erase-remove_if 特定条件 - c.erase(remove_if(c.begin(), c.end(), []()->bool{return true or false;}), c.end());
     vector<int> vec2{10, 20, 30, 30, 20, 10};
     auto it2 = remove_if(vec2.begin(), vec2.end(), [](int value)->bool {
-        if (value == 20) return true;
-        else return false; 
+        return value == 20 ? true : false;
     });
     print_container(vec2);  // 10 20 30 30 20 10
     vec2.erase(it2, vec2.end());  
@@ -66,8 +65,8 @@ int main()
     
     // 关联容器: 删除特定值 - 直接erase(key)
     map<string, int> m1{
-        pair<string, int>("k1", 10), 
-        pair<string, int>("k2", 20), 
+        make_pair("k1", 10), 
+        make_pair("k2", 20), 
         pair<string, int>("k3", 30)};
     print_map(m1);
     
@@ -76,8 +75,8 @@ int main()
     
     cout << "multimap:" << endl;
     multimap<string, int> m2;
-    m2.insert(pair<string, int>("a", 10));
-    m2.insert(pair<string, int>("b", 20)); 
+    m2.insert(make_pair("a", 10));
+    m2.insert(make_pair("b", 20)); 
     m2.insert(pair<string, int>("a", 30));
     print_map(m2);
     cout << "multimap:" << endl;
