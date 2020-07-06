@@ -14,7 +14,7 @@ struct StackNode {
     StackNode(Node *n):node(n), next(NULL){}
 };
 
-void tree_dfs(Node *root) 
+void tree_dfs_with_stack(Node *root) 
 {
     if (root == NULL) return; 
     
@@ -38,6 +38,15 @@ void tree_dfs(Node *root)
     }
 }
 
+void tree_dfs_recursively(Node *root)
+{
+    if (root == NULL) return;
+    
+    cout << root->value << " ";
+    tree_dfs_recursively(root->left);
+    tree_dfs_recursively(root->right);
+}
+
 int main()
 {
     Node *a = new Node('A');
@@ -54,6 +63,11 @@ int main()
     c->left = f;
     c->right = g;
     
-    tree_dfs(a);
+    tree_dfs_with_stack(a);
+    cout << endl;
+    
+    tree_dfs_recursively(a);
+    cout << endl;
+    
     return 0;
 }
