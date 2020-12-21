@@ -77,6 +77,8 @@ int get_ppid_and_comm(int pid, char * comm, int comm_size)
     const int BUF_LEN = 1024;
     char buf[BUF_LEN]; 
     
+    comm[0] = 0;
+    
     char proc_stat_path[PROC_PATH_LENGTH];
     memset(proc_stat_path, 0, PROC_PATH_LENGTH);
     
@@ -85,11 +87,17 @@ int get_ppid_and_comm(int pid, char * comm, int comm_size)
     strcpy(&proc_stat_path[6+pid_len], "/stat");
     
     int fd = open(proc_stat_path, O_RDONLY);    
-    if (fd <= 0) return ERROR; 
+    if (fd <= 0) {
+        strncpy(comm, "Not Found", comm_size);
+        if (comm_size > 0) comm[comm_size-1] = 0;
+        return ERROR; 
+    }
     
     int count = read(fd, buf, BUF_LEN);
     if (count == -1) {
         close(fd);
+        strncpy(comm, "Not Found", comm_size);
+        if (comm_size > 0) comm[comm_size-1] = 0;
         return ERROR;
     }
     else if (count == BUF_LEN) {
