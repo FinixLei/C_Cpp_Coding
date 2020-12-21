@@ -1,7 +1,8 @@
 // g++ main.cpp signal_handler.cpp -lpthread
-// 
-// This program is to start one thread, 
-// in which it repeats to sleep 1 second then check if expired. 
+
+// This program is to start one thread,
+// in which it repeats to sleep 1 second then check if expired.
+
 
 #include <ctime>
 #include <pthread.h>
@@ -51,3 +52,4 @@ int main()
     }
     return 0;
 }
+

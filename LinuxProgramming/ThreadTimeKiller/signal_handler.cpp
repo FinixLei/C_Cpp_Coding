@@ -23,13 +23,7 @@ void set_signal_handler(int signo, signal_handler_t handler)
     sigaction_info.sa_sigaction = handler;
     sigaction_info.sa_mask = sigset_info;
     sigaction_info.sa_flags = SA_SIGINFO;
-
-    switch (signo)
-    {
-    case SIGTERM:
-        sigaction(signo, &sigaction_info, &old_sigterm_info);
-        break;
-    default:
-        break;
-    }
+    
+    sigaction(signo, &sigaction_info, &old_sigterm_info);
 }
+
