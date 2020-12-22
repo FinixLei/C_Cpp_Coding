@@ -55,7 +55,6 @@ void CreateAndStartTimer(unsigned int wait_seconds)
     sev.sigev_signo = SIG;
     sev.sigev_value.sival_ptr = &timerid;
     if (timer_create(CLOCK_REALTIME, &sev, &timerid) == -1) {
-        // In case failed to create timer, continue to run. 
         fprintf(stderr, "Failed to create timer, will continue running.\n");
         return;
     }
@@ -67,7 +66,6 @@ void CreateAndStartTimer(unsigned int wait_seconds)
     its.it_interval.tv_nsec = 0;
 
     if (timer_settime(timerid, 0, &its, NULL) == -1) {
-        // In case failed to start timer, continue to run. 
         fprintf(stderr, "Failed to set timer, will continue running.\n");
     }
     
