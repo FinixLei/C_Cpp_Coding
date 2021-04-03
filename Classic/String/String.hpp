@@ -9,6 +9,7 @@ public:
     String(const String& other);
     String(String&& other);
     String& operator= (const String& other);
+    String& operator= (String&& other);
     virtual ~String();
     
     friend String operator+ (const String& a, const String& b);
@@ -24,7 +25,9 @@ String::String(const char *str)
 {
     cout << "Enter Constructor\n";
     
-    if (str == NULL) {
+    // Must check NULL or nullptr, 
+    // as "int len = strlen(NULL);" will trigger segment fault. 
+    if (str == NULL) {  
         _len = 1; 
         _str = new char [1];
         _str[0] = '\0';
@@ -49,8 +52,9 @@ String::String(String&& other)
     cout << "Enter move copy constructor\n";
     _len = other._len;
     _str = other._str;
-    other._str = NULL;
-    other._len = 0;
+    other._str = new char [1];
+    other._len = 1;
+    other._str[0] = '\0';
 }
 
 String& String::operator= (const String& other)
@@ -66,6 +70,22 @@ String& String::operator= (const String& other)
     _str = new char [_len];
     strcpy(_str, other._str);
     return *this;
+}
+
+String& String::operator= (String&& other)
+{
+    cout << "Enter operator = (&&) \n";
+    
+    if (this == &other) return *this;
+    
+    delete [] _str; 
+    
+    _len = other._len;
+    _str = other._str;
+    
+    other._len = 1;
+    other._str = new char [1];
+    other._str[0] = '\0';
 }
 
 String::~String()
