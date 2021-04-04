@@ -4,37 +4,32 @@
 
 char* my_itoa(int num, char* str, int radix)
 {
-    char index[]="0123456789ABCDEF";  // Ë÷Òý±í
-    unsigned unum;
-    int i=0;
-    int j, k, l;
+    char index[]="0123456789ABCDEF";
     
-    if (num<0) {
+    int pos = 0;
+    unsigned int unum = ( num < 0 ? (-num) : num );
+    
+    if ( num < 0) {
         str[0] = '-';
-        i = 1;
-        num = -num; 
+        ++ pos;
     }
-    unum = (unsigned)(num);
+
+    do {
+        str[pos++] = index[unum % radix]; 
+        unum /= radix; 
+    }while (unum > 0);
     
-    do{
-        str[i++] = index[unum%(unsigned)radix];
-        unum /= radix;
-    } while(unum);
+    int beg = ( num < 0 ? 1 : 0 );
+    int end = pos - 1;
     
-    str[i]='\0';
-    
-    if(str[0]=='-')
-        k=1;
-    else
-        k=0;
-    
-    // ÄæÐò
-    char temp;
-    for(j=k, l=i-1; j<l; j++, l--) {
-        temp = str[j];
-        str[j] = str[l];
-        str[l] = temp;
+    while (beg < end) {
+        char tmp = str[beg];
+        str[beg] = str[end];
+        str[end] = tmp; 
+        beg ++; 
+        end --;
     }
+    
     return str;
 }
 
