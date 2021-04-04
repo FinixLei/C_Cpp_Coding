@@ -6,8 +6,10 @@
 */
 void test_convert_bigendian_littleendian() {
     #define CONVERT(T) \
-(*T) ^= (*(T+3)); (*(T+3)) ^= (*T); (*T) ^= (*(T+3)); \
-(*(T+1)) ^= (*(T+2)); (*(T+2)) ^= (*(T+1)); (*(T+1)) ^= (*(T+2)); 
+    { \
+        (*T) ^= (*(T+3)); (*(T+3)) ^= (*T); (*T) ^= (*(T+3)); \
+        (*(T+1)) ^= (*(T+2)); (*(T+2)) ^= (*(T+1)); (*(T+1)) ^= (*(T+2)); \
+    }
 
     int a = 0x12345678;
     printf("0x%x\n", a);  // 0x12345678
@@ -22,7 +24,7 @@ void test_convert_bigendian_littleendian() {
 */
 void test_check_signed_unassigned() {
     // Note, 下面要用取反的符号~，而不能用负号，否则无法判断0
-    # define IsUnsigned(X) ((X) >= 0 && (~X) >= 0)
+    # define IsUnsigned(X) ((X) >= 0 && (~(X)) >= 0)
     
     int a = 0;
     unsigned int b = 0;
@@ -45,7 +47,7 @@ void test_check_signed_unassigned() {
     write a macro to check a type is signed or unsigned
 */
 void test_check_type_signed_unsigned() {
-    #define IsUnsignedType(TYPE) ((TYPE)0 - (TYPE)1 > (TYPE)0)
+    #define IsUnsignedType(TYPE) ((TYPE)(0) - (TYPE)(1) > (TYPE)(0))
     
     if (IsUnsignedType(int)) {
         printf("int is unsigned type\n");
@@ -66,9 +68,9 @@ void test_check_type_signed_unsigned() {
     write a macro to implement swap
 */
 void test_swap() {
-    #define swap_1(A,B) A=A+B; B=A-B; A=A-B;
+    #define swap_1(A,B) { A=A+B; B=A-B; A=A-B; }
     
-    #define swap_2(A,B) A=A^B; B=A^B; A=A^B;
+    #define swap_2(A,B) { A=A^B; B=A^B; A=A^B; }
     
     int a = 10, b = 20;
     printf("a = %d, b = %d\n", a, b);  // 10, 20
@@ -86,7 +88,7 @@ void test_swap() {
     write a macro to check if a variable is 2^n 
 */
 void test_check_2_power() {
-    # define IsTwoPower(X) ((X & X-1)?0:1)
+    # define IsTwoPower(X) (((X) & ((X)-1)) ? 0 : 1)
     
     int a = 100, b = 64;
     
