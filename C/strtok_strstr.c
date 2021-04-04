@@ -14,7 +14,7 @@ void test_strstr() {
     int size, length;
     
     size = sizeof(replace_str);
-    printf("size is %d\n", size);  // size is 8 ???
+    printf("size is %d\n", size);  // size is 8, as this is a pointer on a 64-bit machine
     length = strlen(replace_str);
     printf("length is %d\n", length);  // length is 6
     
