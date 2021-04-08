@@ -38,28 +38,30 @@ void create_heap(vector<int>& vec)
     int i = (size-1)/2;  // 最后一个节点的父节点
     for (; i>=0; --i) {
         siftdown(vec, i, size);
-        // print_vector(vec);
     }
 }
 
 void heap_sort(vector<int>& vec)
 {
-    int i = vec.size()-1;
-    while (i>0) {
-        std::swap(vec[0], vec[i]);
-        // cout << "<<<< "; print_vector(vec);
-        siftdown(vec, 0, i);
-        // cout << "#### "; print_vector(vec);
-        --i;
-    }
+    int last_pos = vec.size()-1; 
+    if (last_pos<=0) return; 
+    
+    do {
+        swap(vec[0], vec[last_pos]);
+        siftdown(vec, 0, last_pos); 
+        --last_pos;
+    } while (last_pos>0);
+    
 }
 
 int main()
 {
     vector<int> vec{10, 43, 55, 33, 39, 8, 99, 100};
     print_vector(vec);
+    
     create_heap(vec);
-    cout << "--------------------\n";
+    print_vector(vec);
+    
     heap_sort(vec);
     print_vector(vec);
     
