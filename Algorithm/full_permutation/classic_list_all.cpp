@@ -18,35 +18,41 @@
 */
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
+static int total_number = 0;
 
-static int count = 0;
+void print_list(const vector<int>& result) {
+    for (auto v : result) cout << v << " ";
+    cout << endl;
+}
 
-//打印出k到m的全排列，包括k和m，调用时: classic_list_all(array, 0, n-1)
-void classic_list_all(int array[], int start, int end) 
+void list_all(vector<int>& vec, int beg, int end, vector<int>& result)
 {
-    if (start == end) {
-        for (int i=0; i<=end; i++) {
-            cout << array[i] << " ";
-        }
-        cout << endl;
-        count ++;
+    if (beg > end) {
+        print_list(result);
+        total_number ++;
         return;
     }
     
-    for (int i=start; i<=end; i++) {
-        std::swap(array[i], array[start]);
-        classic_list_all(array, start+1, end);
-        std::swap(array[i], array[start]);
+    for (int i=beg; i<=end; i++) {
+        swap(vec[beg], vec[i]);
+        result.push_back(vec[i]);
+        list_all(vec, beg+1, end, result);
+        result.pop_back();
+        swap(vec[beg], vec[i]);
     }
 }
 
-int main() {
-    int array[] = {1, 2, 3};
+int main()
+{
+    vector<int> vec{1, 2, 3};
+    vector<int> result;
+    result.reserve(vec.size());
     
-    classic_list_all(array, 0, (sizeof(array)/sizeof(int) - 1)); 
-    cout << "There are " << count << " kinds of list for above array. " << endl;
+    list_all(vec, 0, vec.size()-1, result);
+    cout << "total_number = " << total_number << endl;
     
     return 0;
 }
