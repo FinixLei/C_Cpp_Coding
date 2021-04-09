@@ -11,33 +11,28 @@ using namespace std;
 
 static int total = 0;
 
-const vector<int> vec{1, 2, 3}; 
-const int n = 5;
-
-void list_all(int n, int pos, vector<int> & target_vec) {
-    if (pos >= n) {
-        for (auto i : target_vec) {
-            cout << i << " ";
-        }
+void allow_duplicated_list_all(const vector<int>& origin, const int n, vector<int> & target_vec) {
+    if (target_vec.size() == n) {
+        for (auto i : target_vec) cout << i << " ";
         cout << endl;
         total++;
         return; 
     }
     
-    for (int i=0; i<vec.size(); ++i) {
-        target_vec.push_back(vec[i]);
-        pos++;
-        list_all(n, pos, target_vec);
-        pos--;
+    for (int i=0; i<origin.size(); ++i) {
+        target_vec.push_back(origin[i]);
+        allow_duplicated_list_all(origin, n, target_vec);
         target_vec.pop_back();
     }
 }
 
-
 int main()
 {
-    vector<int> vec;
-    list_all(n, 0, vec);
+    const vector<int> origin{1, 2, 3}; 
+    const int n = 5;
+
+    vector<int> target_vec;
+    allow_duplicated_list_all(origin, n, target_vec);
     cout << "total number is " << total << endl;
     return 0;
 }
