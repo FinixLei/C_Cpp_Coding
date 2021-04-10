@@ -16,7 +16,7 @@ void print_vector(const vector<T>& v)
 int main()
 {
     int  array[] = {0, 1, 2, 3};
-    int size = sizeof(array)/sizeof(int);
+    int size = sizeof(array)/sizeof(array[0]);
 
     // way-1: push_back 
     vector<int> v1;
@@ -34,12 +34,14 @@ int main()
     // way-3: copy(src.begin(), src.end(), dst.begin())
     vector<int> v3(size); 
     cout << "After initiation, v3'size is " << v3.size() << endl;
-    copy(array, array+size, v3.begin()); 
+    cout << "capacity: " << v3.capacity() << endl;
+    copy(array, array+size, v3.begin());  // if size > v3.size(), then only copy v3.size() numbers 
     
     // way-4: reseve() + self.insert(self.begin(), array, array+size)
     vector<int> v4;
     v4.reserve(size);  // if not reserve, the size is still 0 after initialization
     cout << "After reserve, v4's size is " << v4.size() << endl;
+    cout << "capacity: " << v4.capacity() << endl;
     v4.insert(v4.begin(), array, array+size); 
     
     // Not a new way 
