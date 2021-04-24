@@ -1,8 +1,10 @@
+#ifndef SINGLETON_H
+#define SINGLETON_H
+
 class Singleton
 {
 public:
     static Singleton * get_instance();
-    
     
 private:
     Singleton() {}
@@ -15,13 +17,4 @@ private:
     static Singleton * pointer; 
 };
 
-Singleton * Singleton::pointer = 0;
-
-Singleton * Singleton::get_instance()
-{
-    if (Singleton::pointer == 0) {
-        Singleton::pointer = new Singleton();
-    }
-    return Singleton::pointer;
-}
-
+#endif
