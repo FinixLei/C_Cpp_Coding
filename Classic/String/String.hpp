@@ -57,18 +57,35 @@ String::String(String&& other)
     other._str[0] = '\0';
 }
 
+// way-1 
+// String& String::operator= (const String& other)
+// {
+//     cout << "Enter operator = \n";
+//     
+//     if (this == &other) return *this;
+//     
+//     _len = 0;
+//     delete [] _str;
+//     
+//     _len = other._len;
+//     _str = new char [_len];
+//     strcpy(_str, other._str);
+//     return *this;
+// }
+
+// way-2 
 String& String::operator= (const String& other)
 {
     cout << "Enter operator = \n";
     
-    if (this == &other) return *this;
+    if (this != &other) {
+        // Exception Safe, will not affect original instance
+        String tmp(other);  // one more copy constructor than way-1
+        
+        swap(_len, tmp._len);
+        swap(_str, tmp._str);
+    }
     
-    _len = 0;
-    delete [] _str;
-    
-    _len = other._len;
-    _str = new char [_len];
-    strcpy(_str, other._str);
     return *this;
 }
 
@@ -86,6 +103,7 @@ String& String::operator= (String&& other)
     other._len = 1;
     other._str = new char [1];
     other._str[0] = '\0';
+    return *this;
 }
 
 String::~String()

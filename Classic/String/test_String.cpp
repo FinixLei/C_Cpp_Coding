@@ -25,5 +25,9 @@ int main()
     cout << "a = std::move(e), so, a = " << a << endl;
     cout << "Now e = " << e << endl << endl; 
     
+    String f;
+    f = a;
+    cout << "f = a, so f = " << f << endl;
+    
     return 0;
 }
