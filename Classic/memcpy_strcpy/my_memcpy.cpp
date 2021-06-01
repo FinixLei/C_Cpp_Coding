@@ -15,22 +15,25 @@ void print_array(T* array, int size)
 void * my_memcpy(void *dest, void *src, int size) 
 {
     char * c_dest = (char *)dest; 
-    char * c_src = (char *)src; 
+    char * c_src  = (char *)src; 
+    void * result = nullptr;
     
     if (c_src == c_dest) {
-        return (void *)c_dest;
+        result = dest;
     }
     else if (c_src < c_dest && c_dest < c_src+size) {
         for (int count = size-1; count >= 0; --count) {
             c_dest[count] = c_src[count];
         }
+        result = (void *)c_dest;
     }
     else {
         for (int i=0; i<size; ++i) {
             c_dest[i] = c_src[i];
         }
-        return (void *)dest;
+        result = (void *)c_dest;
     }
+    return result; 
 }
 
 
