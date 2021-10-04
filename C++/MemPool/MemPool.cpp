@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <iostream>
 
+// Mandotory for satisfying link requirement. 
 finix::MemPoolForMyClass * finix::MemPoolForMyClass::_original = nullptr;
 finix::MemPoolForMyClass::NodeForMyClass * finix::MemPoolForMyClass::_head = nullptr;
 
@@ -81,10 +82,15 @@ namespace finix {
         release();
         _head = nullptr;
         
+        MyClass * pTmpHead = (MyClass *)calloc(SizeOfMemPoolForMyClass, sizeof(MyClass));
+        if (pTmpHead == nullptr) {
+            std::cout << "No Memory can be got from System" << std::endl;
+            throw "No Memory can be got from System";
+        }
+        
         int count = 0;
         while (count < SizeOfMemPoolForMyClass) {
-            NodeForMyClass * tmp = new NodeForMyClass;
-            
+            NodeForMyClass * tmp = new NodeForMyClass(nullptr, pTmpHead);
             if (_head) { 
                 tmp->next = _head;
                 _head = tmp;
@@ -93,6 +99,7 @@ namespace finix {
                 _head = tmp;
             }
             count += 1;
+            pTmpHead = pTmpHead + sizeof(MyClass);
         }
         
         count = getPoolAvailableSize();

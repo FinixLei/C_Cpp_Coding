@@ -6,16 +6,21 @@
 #include "MemPool.h"
 
 namespace finix {
+    
     class MyClass
     {
     public:
         static void * operator new (size_t size);
         static void operator delete(void * p);
+        
+        static void * operator new [] (size_t size) = delete;
+        static void operator delete [] (void * p) = delete;
     
         MyClass(int data = 0, std::string name="");
         MyClass(const MyClass& other);
+         ~MyClass();
         MyClass& operator = (const MyClass & other);
-        ~MyClass();
+       
         
         void set_data(int d);
         int get_data();

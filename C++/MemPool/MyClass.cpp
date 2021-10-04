@@ -8,6 +8,7 @@
 #include "MemPool.h"
 #include "MyClass.h"
 
+
 namespace finix {
     
     void * MyClass::operator new (size_t size) {
@@ -15,7 +16,7 @@ namespace finix {
         
         MemPoolForMyClass * pool = MemPoolForMyClass::getMemoryPool();
         if (pool == nullptr) {
-            std::cout << "Cannot get memory pool" << std::endl;
+            std::cerr << "Cannot get memory pool" << std::endl;
             throw "Cannot get memory pool";
         }
         
@@ -33,16 +34,14 @@ namespace finix {
     }
     
     void MyClass::operator delete(void * p) {
-        MyClass * tmp = (MyClass *)p;
+        std::cout << "MyClass::operator delete : return memory to memory pool" << std::endl;
         
         MemPoolForMyClass * pool = MemPoolForMyClass::getMemoryPool();
         if (pool == nullptr) {
-            std::cout << "Cannot get memory pool" << std::endl;
+            std::cerr << "Cannot get memory pool" << std::endl;
             throw "Cannot get memory pool";
         }
-        
-        std::cout << "MyClass::operator delete : return memory to memory pool" << std::endl;
-        pool->returnMemory(tmp);
+        pool->returnMemory((MyClass *)p);
     }
     
     MyClass::MyClass(int data, std::string name) : _data(data), _name(name) { }
