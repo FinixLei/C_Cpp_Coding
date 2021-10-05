@@ -1,12 +1,11 @@
-// g++ -c MyClass.cpp
-// g++ -c test_MyClass.cpp
-// g++ -c MemPool.cpp
-// g++ -o a.out test_MyClass.o MyClass.o MemPool.o
+// g++ -c MyClass.cpp test_MyClass.cpp MemPool.cpp
+// g++ -o a.out *.o
 
 #include "MyClass.h"
 #include <iostream>
 #include <string>
 
+extern const int finix::SizeOfMemPoolForMyClass;
 
 int main()
 {
@@ -20,6 +19,27 @@ int main()
     delete p1;
     delete p2;
     std::cout << "Done...\n";
+  
+    finix::MyClass *pArray[finix::SizeOfMemPoolForMyClass+1];
+    for (int i=0; i<finix::SizeOfMemPoolForMyClass+1; i++) {
+        try {
+            pArray[i] = new finix::MyClass(i, "");
+        }
+        catch(char const * msg) {
+            std::cerr << msg << std::endl;
+            pArray[i] = nullptr;
+        }
+        catch(std::bad_alloc) {
+            std::cerr << "Cannot get memory from pool" << std::endl;
+            pArray[i] = nullptr;
+        }
+    }
+    for (int i=0; i<finix::SizeOfMemPoolForMyClass+1; i++) {
+        if (pArray[i]) {
+            delete pArray[i];
+            pArray[i] = nullptr;
+        }
+    }
   
     return 0;
 }

@@ -10,7 +10,7 @@ finix::MemPoolForMyClass * finix::MemPoolForMyClass::_original = nullptr;
 finix::MemPoolForMyClass::NodeForMyClass * finix::MemPoolForMyClass::_head = nullptr;
 
 namespace finix {
-    const int SizeOfMemPoolForMyClass = 10;
+    const int SizeOfMemPoolForMyClass = 5;
     
     MemPoolForMyClass * MemPoolForMyClass::getMemoryPool() {
         if (_original == nullptr) {
@@ -22,7 +22,7 @@ namespace finix {
         
     MyClass * MemPoolForMyClass::getMemory() {
         if (_head == nullptr) {
-            std::cout << "No Memory in Pool" << std::endl;
+            std::cerr << "No Memory in Pool" << std::endl;
             return nullptr;
         }
         
@@ -84,7 +84,7 @@ namespace finix {
         
         MyClass * pTmpHead = (MyClass *)calloc(SizeOfMemPoolForMyClass, sizeof(MyClass));
         if (pTmpHead == nullptr) {
-            std::cout << "No Memory can be got from System" << std::endl;
+            std::cerr << "No Memory can be got from System" << std::endl;
             throw "No Memory can be got from System";
         }
         

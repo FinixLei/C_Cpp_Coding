@@ -13,6 +13,8 @@ namespace finix {
         static void * operator new (size_t size);
         static void operator delete(void * p);
         
+        // Disable operator new[] and operator delete[], 
+        // as their implementation would be complex. 
         static void * operator new [] (size_t size) = delete;
         static void operator delete [] (void * p) = delete;
     
@@ -20,7 +22,6 @@ namespace finix {
         MyClass(const MyClass& other);
          ~MyClass();
         MyClass& operator = (const MyClass & other);
-       
         
         void set_data(int d);
         int get_data();
