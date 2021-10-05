@@ -29,7 +29,7 @@ int main()
             std::cerr << msg << std::endl;
             pArray[i] = nullptr;
         }
-        catch(std::bad_alloc) {
+        catch(std::bad_alloc& e) {
             std::cerr << "Cannot get memory from pool" << std::endl;
             pArray[i] = nullptr;
         }

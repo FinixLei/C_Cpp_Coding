@@ -23,7 +23,7 @@ namespace finix {
         void * p = pool->getMemory();
         
         if (p == nullptr) {
-            std::cerr << "No Memory got from the memory pool" << std::endl;
+            std::cerr << "No Memory got from the pool" << std::endl;
             throw std::bad_alloc();
         }
         else {
