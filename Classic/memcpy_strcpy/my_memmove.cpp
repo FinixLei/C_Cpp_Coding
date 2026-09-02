@@ -12,30 +12,25 @@ void print_array(T* array, int size)
     std::cout << endl;
 }
 
-void * my_memcpy(void *dest, void *src, int size) 
+void *my_memmove(void *dst, const void *src, size_t n)
 {
-    char * c_dest = (char *)dest; 
-    char * c_src  = (char *)src; 
-    void * result = nullptr;
-    
-    if (c_src == c_dest) {
-        result = dest;
-    }
-    else if (c_src < c_dest && c_dest < c_src+size) {
-        for (int count = size-1; count >= 0; --count) {
-            c_dest[count] = c_src[count];
-        }
-        result = (void *)c_dest;
-    }
-    else {
-        for (int i=0; i<size; ++i) {
-            c_dest[i] = c_src[i];
-        }
-        result = (void *)c_dest;
-    }
-    return result; 
+	if (dst == src || n == 0) return dst;
+	
+	char * d = (char *)dst;
+	const char * s = (const char *)src;
+	
+	if (s < d && d < s + n) {
+		for (size_t i=n; i>0; i--) {
+			d[i-1] = s[i-1];
+		}
+	}
+	else {
+		for (size_t i=0; i<n; i++) {
+			d[i] = s[i];
+		}
+	}
+	return dst;	
 }
-
 
 int main()
 {
@@ -47,15 +42,15 @@ int main()
     
     int *np2 = new int [size1];
     // memcpy(np2, np1, size1*sizeof(int));
-    my_memcpy(np2, np1, size1*sizeof(int));
+    my_memmove(np2, np1, size1*sizeof(int));
     print_array(np1, size1);
     print_array(np2, size1);
     
     int *np3 = np1 + 2;
-    // size2 = 10 will cause crash for both memcpy and my_memcpy
+    // size2 = 10 will cause crash for both memcpy and my_memmove
     int size2 = 5;
     // memcpy(np3, np1, size2*sizeof(int));
-    my_memcpy(np3, np1, size2*sizeof(int));
+    my_memmove(np3, np1, size2*sizeof(int));
     print_array(np3, size2);
     print_array(np1, size1);
     
